@@ -1,0 +1,33 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+\setmainfont{Olde English}
+
+\title{API Specification \\ \small{Web Engineering, 2019}}
+\author{Andrew Lalis, Project Leader and Framework Specialist \\ 
+George Rakshiev, Design and Requirements Engineer \\ 
+Tom den Boon, Full Stack Software Superhero}
+
+\begin{document}
+
+\maketitle
+
+\section{Requirements}
+	The requirements for this API specification, as described in the Web Engineering Project Description found on Nestor are as follows:
+	
+	\noindent Design a RESTful API that allows for accessing the following data:
+	
+	\begin{enumerate}
+		\item all airports available in the USA
+		\item all carriers operating in US airports
+		\item all carriers operating at a specific US airport
+		\item all statistics about flights of a carrier from / to a US airport for a given month or all months available (‡)
+		\item number of on-time, delayed, and cancelled flights of a carrier from / to a US airport for a given month or all months available.
+		\item  number of minutes of delay per carrier attributed to carrier-specific reasons (i.e.  attributes carrier and late aircraft in  the  dataset) /all  reasons,  for  a given month or all months available and for a specific airport / across all USairports
+		\item descriptive statistics (mean, median, standard deviation) for carrier-specific delays (as above) for a flight between any two airports in the USA for a specific carrier / all carriers serving this route.
+	\end{enumerate}
+	
+	Entries entries marked with (‡) require support for both retrieval and manipulation  (addition,  update,  deletion)  of  data  through  the  API;  otherwise  only retrieval  is  to  be  supported.   Each  API  endpoint  should  support  both  JSON and CSV representations of the resources (i.e.Content-Type is application/json and text/csv) available at least by an appropriate query parameter.  JSON is the default option if none is specified.
+
+\end{document}
