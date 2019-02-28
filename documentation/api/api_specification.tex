@@ -2,7 +2,9 @@
 
 \usepackage{fontspec}
 \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-\setmainfont{Olde English}
+\setmainfont{Arial}
+
+\usepackage{listings}
 
 \title{API Specification \\ \small{Web Engineering, 2019}}
 \author{Andrew Lalis, Project Leader and Framework Specialist \\ 
@@ -29,5 +31,39 @@ Tom den Boon, Full Stack Software Superhero}
 	\end{enumerate}
 	
 	Entries entries marked with (‡) require support for both retrieval and manipulation  (addition,  update,  deletion)  of  data  through  the  API;  otherwise  only retrieval  is  to  be  supported.   Each  API  endpoint  should  support  both  JSON and CSV representations of the resources (i.e.Content-Type is application/json and text/csv) available at least by an appropriate query parameter.  JSON is the default option if none is specified.
+
+\section{Introduction}
+
+\section{Specification}
+
+	\subsection{Airports}
+		\begin{itemize}
+			\item URL: \texttt{/airports}
+			\item Supported request types: \texttt{GET}
+			\item Additional parameters:
+				\begin{itemize}
+					\item \texttt{page}: Integer determining what page of the result set to receive.
+					\item \texttt{limit}: The limit for the number of airports returned.
+				\end{itemize}
+			\item Example response:
+			\begin{lstlisting}
+[
+	{
+		'code': 'ABC',
+		'name': 'Example Airport A',
+		'links': {
+			'self': 'https://DOMAIN/api/airports/ABC'
+		}
+	},
+	{
+		'code': 'DCE',
+		'name': 'Example Airport B',
+		'links': {
+			'self': 'https://DOMAIN/api/airports/DCE'
+		}
+	},
+]
+			\end{lstlisting}
+		\end{itemize}
 
 \end{document}

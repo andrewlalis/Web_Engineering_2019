@@ -135,7 +135,55 @@ foreach ($carriers as $carrier_code => $carrier_name) {
 }
 echo 'Inserted all carriers.' . PHP_EOL;
 
-$sql = "INSERT INTO `airport_carrier` VALUES ();"
+$sql = "INSERT INTO `airport_carrier` VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ssiiiiiiiiiiiiiiisii",
+	$airport_code,
+	$carrier_code,
+	$flights_cancelled,
+	$flights_on_time,
+	$flights_delayed,
+	$flights_diverted,
+	$delays_late_aircraft,
+	$delays_weather,
+	$delays_security,
+	$delays_national_aviation_system,
+	$delays_carrier,
+	$minutes_delayed_late_aircraft,
+	$minutes_delayed_weather,
+	$minutes_delayed_carrier,
+	$minutes_delayed_security,
+	$minutes_delayed_total,
+	$minutes_delayed_national_aviation_system,
+	$time_label,
+	$time_year,
+	$time_month
+);
+
+echo 'Inserting many-to-many data...' . PHP_EOL;
+foreach ($dataset as $data) {
+	$airport_code = $data['airport']['code'];
+	$carrier_code = $data['carrier']['code'];
+	$flights_cancelled = $data['flights']['cancelled'];
+	$flights_on_time = $data['flights']['on time'];
+	$flights_delayed = $data['flights']['delayed'];
+	$flights_diverted = $data['flights']['diverted'];
+	$delays_late_aircraft = $data['# of delays']['late aircraft'];
+	$delays_weather = $data['# of delays']['weather'];
+	$delays_security = $data['# of delays']['security'];
+	$delays_national_aviation_system = $data['# of delays']['national aviation system'];
+	$delays_carrier = $data['# of delays']['carrier'];
+	$minutes_delayed_late_aircraft = $data['minutes delayed']['late aircraft'];
+	$minutes_delayed_weather = $data['minutes delayed']['weather'];
+	$minutes_delayed_carrier = $data['minutes delayed']['carrier'];
+	$minutes_delayed_security = $data['minutes delayed']['security'];
+	$minutes_delayed_total = $data['minutes delayed']['total'];
+	$minutes_delayed_national_aviation_system = $data['minutes delayed']['national aviation system'];
+	$time_label = $data['time']['label'];
+	$time_year = $data['time']['year'];
+	$time_month = $data['time']['month'];
+	$stmt->execute();
+}
 
 $stmt->close();
 $conn->close();
