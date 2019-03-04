@@ -1,8 +1,14 @@
-\documentclass[a4paper, 12pt]{article}
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\fvset{tabsize=2}
 
-\usepackage{fontspec}
-\defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-\setmainfont{Olde English}
+\lstset{
+    breaklines=true,
+    tabsize=2,
+    basicstyle=\small
+}
 
 \title{API Specification \\ \small{Web Engineering, 2019}}
 \author{Andrew Lalis, Project Leader and Framework Specialist \\ 
@@ -24,10 +30,322 @@ Tom den Boon, Full Stack Software Superhero}
 		\item all carriers operating at a specific US airport
 		\item all statistics about flights of a carrier from / to a US airport for a given month or all months available (‡)
 		\item number of on-time, delayed, and cancelled flights of a carrier from / to a US airport for a given month or all months available.
-		\item  number of minutes of delay per carrier attributed to carrier-specific reasons (i.e.  attributes carrier and late aircraft in  the  dataset) /all  reasons,  for  a given month or all months available and for a specific airport / across all USairports
+		\item  number of minutes of delay per carrier attributed to carrier-specific reasons (i.e.  attributes carrier and late aircraft in  the  dataset) /all  reasons,  for  a given month or all months available and for a specific airport / across all US airports
 		\item descriptive statistics (mean, median, standard deviation) for carrier-specific delays (as above) for a flight between any two airports in the USA for a specific carrier / all carriers serving this route.
 	\end{enumerate}
 	
-	Entries entries marked with (‡) require support for both retrieval and manipulation  (addition,  update,  deletion)  of  data  through  the  API;  otherwise  only retrieval  is  to  be  supported.   Each  API  endpoint  should  support  both  JSON and CSV representations of the resources (i.e.Content-Type is application/json and text/csv) available at least by an appropriate query parameter.  JSON is the default option if none is specified.
+	Entries marked with (‡) require support for both retrieval and manipulation  (addition,  update,  deletion)  of  data  through  the  API;  otherwise  only retrieval  is  to  be  supported.   Each  API  endpoint  should  support  both  JSON and CSV representations of the resources (i.e.Content-Type is application/json and text/csv) available at least by an appropriate query parameter.  JSON is the default option if none is specified.
 
+\section{Introduction}
+	In this API specification document, you'll find REST endpoints which cover all of the requirements listed above in section 1. For those endpoints which return a collection of objects, it is implied that the following two parameters may be provided:
+	\begin{itemize}
+		\item \texttt{page} - The current page of results.
+		\item \texttt{limit} - The number of results to return on the given page.
+	\end{itemize}
+	
+	Additionally, it is assumed that all GET requests follow standard HTTP convention in which response codes they produce, such as 404 when a specified resource does not exist, etc.
+	
+	Regarding the final endpoint, which is responsible for giving aggregate statistics, we believe that such statistics are meaningless given the fact that we have no way of determining what flight certain numbers come from, but we have implemented it regardless.
+
+\section{Specification}
+
+	\subsection{Airports}
+		\begin{itemize}
+			\item URL: \texttt{/airports}
+			\item Description: This endpoint supplies a collection of all US airports. Each airport has a \texttt{code} and \texttt{name}. A url to the airport is given as well.
+			\item Supported request types: \texttt{GET}
+			\item Example response:
+			\begin{lstlisting}
+{
+    'content': [
+    	{
+    		'code': 'ORD',
+    		'name': 'O'Hare International Airport',
+    		'links': {
+    			'self': 'https://DOMAIN/api/airports/ORD'
+    		}
+    	},
+    	{
+    		'code': 'TPA',
+    		'name': 'Tampa International Airport',
+    		'links': {
+    			'self': 'https://DOMAIN/api/airports/TPA'
+    		}
+    	}
+    ],
+    'links': {
+        'self': 'https://DOMAIN/api/airports'
+    }
+}
+
+			\end{lstlisting}
+		\end{itemize}
+	
+	\subsection{Airport Entity}
+	    \begin{itemize}
+			\item URL: \texttt{/airports/<code>}
+			\item Description: This endpoint supplies information about a single airport specified in the url.
+			\item Supported request types: \texttt{GET}
+			\item Example response:
+			\begin{lstlisting}
+{
+    'content': {
+		'code': 'ORD',
+		'name': 'O'Hare International Airport'
+	},
+    'links': {
+        'self': 'https://DOMAIN/api/airports/ORD',
+        'carriers': 'https://DOMAIN/api/airports/ORD/carriers'
+    }
+}
+
+			\end{lstlisting}
+		\end{itemize}
+		
+	\subsection{Carriers at an Airport}
+	    \begin{itemize}
+			\item URL: \texttt{/airports/<code>/carriers}
+			\item Description: This endpoint supplies a collection of all carriers operating in a specific USA airport. The \texttt{code} and \texttt{name} of the carriers are provided, as well as a link to each carrier.
+			\item Supported request types: \texttt{GET}
+			\item Example response:
+			\begin{lstlisting}
+{
+    'content': [
+        {
+            'code': '9E',
+            'name': 'Endeavor Air Inc.',
+            'links': {
+                'self': 'https://DOMAIN/api/carriers/9E'
+            }
+        },
+        {
+            'code': 'AA',
+            'name': 'American Airlines Inc.',
+            'links': {
+                'self': 'https://DOMAIN/api/carriers/AA'
+            }
+        }
+    ],
+    'links': {
+        'self': 'https://DOMAIN/api/airports/ORD/carriers'
+    }
+}
+
+			\end{lstlisting}
+		\end{itemize}
+		
+    \subsection{Carriers}
+		\begin{itemize}
+		\item URL: \texttt{/carriers}
+		\item Description: This endpoint supplies a collection of all carriers operating in the USA. Each carrier has a \texttt{code} and \texttt{name}. A url to the carrier is given as well.
+		\item Supported request types: \texttt{GET}
+		\item Additional parameters:
+			\begin{itemize}
+				\item \texttt{airport\_code}: Airport code specifying all carriers operating at that airport
+			\end{itemize}
+		\item Example response:
+		\begin{lstlisting}
+{
+    'content': [
+        {
+        	'code': 'LH',
+        	'name': 'Lufthansa',
+        	'links': {
+        		'self': 'https://DOMAIN/api/carriers/LH'
+        	}
+        },
+	    {
+    		'code': 'UA',
+    		'name': 'United Airlines',
+    		'links': {
+    			'self': 'https://DOMAIN/api/carriers/UA'
+    		}
+         }
+    ]
+    'links':{
+        'self': 'https://DOMAIN/api/carriers'
+    }
+}
+			\end{lstlisting}
+		\end{itemize}
+		
+	\subsection{Carrier entity}
+    	\begin{itemize}
+    		\item URL: \texttt{/carrier/<code>}
+    		\item Description: This endpoint supplies information pertaining to a specific carrier specified in the url.
+    		\item Supported request types: \texttt{GET}
+    		\item Example response:
+    		\begin{lstlisting}
+{
+    'content': {
+		'code': 'LH',
+		'name': 'Lufthansa'
+	},
+    'links': {
+        'self': 'https://DOMAIN/api/carriers/LH'
+    }
+}
+
+			\end{lstlisting}
+		\end{itemize}
+		
+    \subsection{All Flight Statistics for a Carrier at an Airport}
+        \begin{itemize}
+			\item URL: \texttt{/carriers/<code>/flights/<airport\_code>/all}
+			\item This endpoint supplies data about flight statistics for a specific pairing of a carrier with an airport, and also supports creation of new data and updating of existing resources. A delete request is also supplied, however it is not guaranteed that the resource will be deleted immediately, or even in the near future.
+			\item Supported request types: \texttt{GET, POST, PATCH, DELETE}
+			\item Example response for GET request:
+			\begin{lstlisting}
+{
+    'content': {
+        'cancelled': 5,
+        'on time': 561,
+        'total': 752,
+        'delayed': 186,
+        'diverted': 0
+    },
+    'links': {
+        'self': 'https://DOMAIN/api/carriers/AA/flights/ATL/all',
+        'carrier': 'https://DOMAIN/api/carriers/AA',
+        'airport': 'https://DOMAIN/api/airports/ATL'
+    }
+}
+
+			\end{lstlisting}
+			\item Example response for DELETE request:
+			\begin{lstlisting}
+200 OK if successful
+404 NOT FOUND if resource does not exist.
+			\end{lstlisting}
+			
+			\item Example payload for POST request:
+    			\begin{lstlisting}
+{
+    'cancelled': 5,
+    'on time': 561,
+    'total': 752,
+    'delayed': 186,
+    'diverted': 0
+}
+    			\end{lstlisting}
+    			
+    			Responses for POST request:
+    			\begin{lstlisting}
+201 CREATED if successful
+{
+     'content': {
+        'cancelled': 5,
+        'on time': 561,
+        'total': 752,
+        'delayed': 186,
+        'diverted': 0
+    },
+    'links': {
+        'self': 'https://DOMAIN/api/carriers/AA/flights/ATL/all',
+        'carrier': 'https://DOMAIN/api/carriers/AA',
+        'airport': 'https://DOMAIN/api/airports/ATL'
+    }
+}
+
+404 NOT FOUND if either carrier or airport does not exist
+409 CONFLICT if flights already exist for this carrier/airport combination.
+    			\end{lstlisting}
+    			
+    			\item Example payload for a PATCH request:
+    			\begin{lstlisting}
+{
+    'cancelled': 5,
+    'on time': 561,
+    'total': 752,
+    'delayed': 186,
+    'diverted': 0
+}
+    			\end{lstlisting}
+    			
+    			Example response for a PATCH request:
+    			\begin{lstlisting}
+    			\end{lstlisting}
+    		\end{itemize}
+    
+    \subsection{Statistics for On-time, Delayed, and Cancelled Flights}
+        \begin{itemize}
+            \item URL: \texttt{/carriers/<code>/flights/<airport\_code>}
+            \item Description: This endpoint supplies data pertaining to on-time, delayed, and cancelled flight statistics belonging to a carrier in a specific airport,  
+            \item Supported request types: \texttt{GET}
+            \item Example response for GET request:
+            \begin{lstlisting}
+{
+    'content':{
+        'cancelled': 5,
+        'on time': 561,
+        'delayed': 186
+    },
+    'links':{
+        'self': 'https://DOMAIN/api/carriers/AA/flights/ATL'
+        'carrier': 'https://DOMAIN/api/carriers/AA'
+        'airport': 'https://DOMAIN/api/airports/ATL'
+    }
+}
+           \end{lstlisting}
+        \end{itemize}
+    \subsection{Statistics for Reasons of Delay }
+    \begin{itemize}
+        \item URL: \texttt{/carriers/<code>/minutes\_delay}
+    	\item Description: This endpoint supplies a count of the reasons why a flight was delayed for a specific carrier. The default call with no additional parameters will return the count of all delays(late aircraft, carrier, security, weather, and national aviation system) for the carrier specified. A link to the carrier is provided as well and a link to an airport, if an airport was specified.
+        \item Supported request types: \texttt{GET}
+        \item Additional parameters:
+            \begin{itemize}
+                \item \texttt{all}: Specifies all reasons for delay or carrier specific delays, \texttt{true} for all reasons and \texttt{false} for carrier specific. The default is set to \texttt{true}.
+                \item \texttt{year}: Integer specifying a year.
+                \item \texttt{month}: Integer specifying a month/
+                \item \texttt{airport\_code}: Code corresponding to an airport. If nothing is specified, return all airports.
+            \end{itemize}
+        \item Example response for \texttt{GET} request:
+        \begin{lstlisting}
+{
+    'content':{
+        'late aircraft': 1269,
+        'carrier': 1367
+    }
+    'links':{
+        'self': 'https://DOMAIN/api/carriers/AA/minutes_delay?all=false&year=2003&month=6&airport_code=ATL',
+        'carrier': 'https://DOMAIN/api/carriers/AA',
+        'airport': 'https://DOMAIN/api/airports/ATL'
+    }
+}
+       \end{lstlisting} 
+    \end{itemize}
+    \subsection{Descriptive Statistics for Carrier-Specific Delays Between Two Airports in the USA.}
+        \begin{itemize}
+            \item URL: \texttt{/airports/<airport\_code\_1>/<airport\_code\_2>/flights}
+            \item Description: This endpoint supplies descriptive statistics on carrier-specific delays for two requested airports.
+            \item Supported request types: \texttt{GET}
+             \item Additional parameters:
+            \begin{itemize}
+                \item \texttt{carrier\_code}: Code corresponding to an carrier. If nothing is specified, return stats for all carriers.
+            \end{itemize}
+            \item Example response for GET request:
+            \begin{lstlisting}
+{
+    'content':{
+        'delayed_statistics_ATL':{ 
+            'mean': 2578,
+            'median': 2681,
+            'stdDev': 42
+        }
+        'delayed_statistics_TPA':{ 
+            'mean': 1842,
+            'median': 1789,
+            'stdDev': 36
+        }
+    },
+    'links':{
+        'self': 'https://DOMAIN/api/airports/ATL/TPA/flights?&carrier_code=AA'
+        'carrier': 'https://DOMAIN/api/carriers/AA'
+        'airport': 'https://DOMAIN/api/airports/ATL'
+        'airport': 'https://DOMAIN/api/airports/TPA'
+    }
+}
+           \end{lstlisting}
+        \end{itemize}
 \end{document}

@@ -161,7 +161,7 @@ $stmt->bind_param("ssiiiiiiiiiiiiiiisii",
 );
 
 echo 'Inserting many-to-many data...' . PHP_EOL;
-var_dump($dataset[0]['statistics']['minutes delayed']);
+var_dump($dataset[0]);
 foreach ($dataset as $data) {
 	$airport_code = $data['airport']['code'];
 	$carrier_code = $data['carrier']['code'];
@@ -169,7 +169,6 @@ foreach ($dataset as $data) {
   $flights = $data['statistics']['flights'];
   $delay_counts = $data['statistics']['# of delays'];
   $delay_minutes = $data['statistics']['minutes delayed'];
-  var_dump($delay_minutes);
   
   if (!empty($flights)) {
     $flights_cancelled = $flights['cancelled'];
