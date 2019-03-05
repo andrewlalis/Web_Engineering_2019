@@ -72,6 +72,8 @@ array(4) {
 }
 */
 
+ini_set('memory_limit', '-1');
+
 $dataset = json_decode(file_get_contents("airlines.json"), true);
 
 var_dump($dataset[0]);
@@ -97,6 +99,7 @@ echo 'Carriers: ' . PHP_EOL;
 foreach ($carriers as $carrier) {
 	echo $carrier . PHP_EOL;
 }
+
 
 $conn = new mysqli('localhost', 'root', 'root', 'airlines');
 if ($conn->connect_error) {
@@ -157,48 +160,47 @@ $stmt->bind_param("ssiiiiiiiiiiiiiiisii",
 	$minutes_delayed_national_aviation_system,
 	$time_label,
 	$time_year,
-	$time_month
+    $time_month
 );
 
 echo 'Inserting many-to-many data...' . PHP_EOL;
 var_dump($dataset[0]['statistics']['minutes delayed']);
 foreach ($dataset as $data) {
-	$airport_code = $data['airport']['code'];
+    $airport_code = $data['airport']['code'];
 	$carrier_code = $data['carrier']['code'];
-
-  $flights = $data['statistics']['flights'];
-  $delay_counts = $data['statistics']['# of delays'];
-  $delay_minutes = $data['statistics']['minutes delayed'];
-  var_dump($delay_minutes);
+	$flights = $data['statistics']['flights'];
+    $delay_counts = $data['statistics']['# of delays'];
+    $delay_minutes = $data['statistics']['minutes delayed'];
+    var_dump($delay_minutes);
   
-  if (!empty($flights)) {
-    $flights_cancelled = $flights['cancelled'];
-    $flights_on_time = $flights['on time'];
-    $flights_delayed = $flights['delayed'];
-    $flights_diverted = $flights['diverted'];
-  }
+    if (!empty($flights)) {
+        $flights_cancelled = $flights['cancelled'];
+        $flights_on_time = $flights['on time'];
+        $flights_delayed = $flights['delayed'];
+        $flights_diverted = $flights['diverted'];
+    }
 	
-  if (!empty($delay_counts)) {
-    $delays_late_aircraft = $delay_counts['late aircraft'];
-    $delays_weather = $delay_counts['weather'];
-    $delays_security = $delay_counts['security'];
-    $delays_national_aviation_system = $delay_counts['national aviation system'];
-    $delays_carrier = $delay_counts['carrier'];
-  }
+    if (!empty($delay_counts)) {
+        $delays_late_aircraft = $delay_counts['late aircraft'];
+        $delays_weather = $delay_counts['weather'];
+        $delays_security = $delay_counts['security'];
+        $delays_national_aviation_system = $delay_counts['national aviation system'];
+        $delays_carrier = $delay_counts['carrier'];
+    }
 	
-  if (!empty($data['minutes_delayed'])) {
-    $minutes_delayed_late_aircraft = $delay_minutes['late aircraft'];
-    $minutes_delayed_weather = $delay_minutes['weather'];
-    $minutes_delayed_carrier = $delay_minutes['carrier'];
-    $minutes_delayed_security = $delay_minutes['security'];
-    $minutes_delayed_total = $delay_minutes['total'];
-    $minutes_delayed_national_aviation_system = $delay_minutes['national aviation system'];
-  }
+    if (!empty($data['minutes_delayed'])) {
+        $minutes_delayed_late_aircraft = $delay_minutes['late aircraft'];
+        $minutes_delayed_weather = $delay_minutes['weather'];
+        $minutes_delayed_carrier = $delay_minutes['carrier'];
+        $minutes_delayed_security = $delay_minutes['security'];
+        $minutes_delayed_total = $delay_minutes['total'];
+        $minutes_delayed_national_aviation_system = $delay_minutes['national aviation system'];
+    }
 	
-	$time_label = $data['time']['label'];
-	$time_year = $data['time']['year'];
-	$time_month = $data['time']['month'];
-	$stmt->execute();
+    $time_label = $data['time']['label'];
+    $time_year = $data['time']['year'];
+    $time_month = $data['time']['month'];
+    $stmt->execute();
 }
 
 $stmt->close();
