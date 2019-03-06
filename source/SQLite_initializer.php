@@ -15,7 +15,7 @@ function createTables(Sqlite3 $db) {
 
 ini_set('memory_limit', '-1');
 
-$dataset = json_decode(file_get_contents("airlines.json"), true);
+$dataset = json_decode(file_get_contents("../dataset/airlines.json"), true);
 
 // Extract the entity data for use later.
 $airports = [];
