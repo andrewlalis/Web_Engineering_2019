@@ -23,6 +23,8 @@ $router = new Router();
 $router->registerEndpoint(new Endpoints\Example());
 $router->registerEndpoint(new Endpoints\Airports());
 $router->registerEndpoint(new Endpoints\Airports\Airport());
+$router->registerEndpoint(new Endpoints\Carriers());
+$router->registerEndpoint(new Endpoints\Carriers\Carrier());
 
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
