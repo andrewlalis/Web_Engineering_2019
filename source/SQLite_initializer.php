@@ -8,8 +8,8 @@ function dropOldTables(Sqlite3 $db) {
 }
 
 function createTables(Sqlite3 $db) {
-	$db->exec("CREATE TABLE airports(airport_code varchar(10), airport_name varchar(254))");
-	$db->exec("CREATE TABLE carriers(carrier_code varchar(10), carrier_name varchar(254))");
+	$db->exec("CREATE TABLE airports(airport_code varchar(10) PRIMARY KEY, airport_name varchar(254))");
+	$db->exec("CREATE TABLE carriers(carrier_code varchar(10) PRIMARY KEY, carrier_name varchar(254))");
 	$db->exec("CREATE TABLE airport_carrier(airport_code varchar(10), carrier_code varchar(254), flights_cancelled int, flights_on_time int, flights_delayed int, flights_diverted int, delays_late_aircraft int, delays_weather int, delays_security int, delays_national_aviation_system int, delays_carrier int, minutes_delayed_late_aircraft int, minutes_delayed_weather int, minutes_delayed_carrier int, minutes_delayed_security int, minutes_delayed_total int, minutes_delayed_national_aviation_system int, time_label varchar(254), time_year int, time_month int)");
 }
 
@@ -31,9 +31,7 @@ foreach ($dataset as $key => $value) {
 $db = new SQLite3("fly_ATG.sqlite"); // Andrew Tom George
 
 if(!$db) {
-    echo $db->lastErrorMsg();
-} else {
-    echo "Opened database successfully\n";
+    die($db->lastErrorMsg());
 }
 
 dropOldTables($db);
@@ -45,14 +43,12 @@ $sql = 'INSERT INTO airports(airport_code, airport_name)'
 $stmt = $db->prepare($sql);
 $stmt->bindParam(':airport_code', $airport_code);
 $stmt->bindParam(':airport_name', $airport_name);
-echo 'Inserting airports...' . PHP_EOL;
 foreach ($airports as $code => $name) {
 	$airport_code = $code;
 	$airport_name = $name;
     $stmt->execute();
 }
 $db->exec('COMMIT;');
-echo 'Inserted all airports.' . PHP_EOL;
 
 $db->exec('BEGIN;');
 $sql = 'INSERT INTO `carriers` (carrier_code, carrier_name)'
@@ -60,14 +56,12 @@ $sql = 'INSERT INTO `carriers` (carrier_code, carrier_name)'
 $stmt = $db->prepare($sql);
 $stmt->bindParam(':carrier_code', $carrier_code);
 $stmt->bindParam(':carrier_name', $carrier_name);
-echo 'Inserting carriers...' . PHP_EOL;
 foreach ($carriers as $code => $name) {
     $carrier_code = $code;
     $carrier_name = $name;
     $stmt->execute();
 }
 $db->exec('COMMIT;');
-echo 'Inserted all carriers.' . PHP_EOL;
 
 $db->exec('BEGIN;');
 $sql = 'INSERT INTO airport_carrier(airport_code, carrier_code,'
@@ -102,7 +96,6 @@ $stmt->bindParam(':time_label', $time_label);
 $stmt->bindParam(':time_year', $time_year);
 $stmt->bindParam(':time_month', $time_month);
 
-echo 'Inserting many-to-many data...' . PHP_EOL;
 $cnt = 0;
 foreach ($dataset as $data) {
     $cnt = $cnt + 1;
@@ -142,4 +135,4 @@ foreach ($dataset as $data) {
     $stmt->execute();
 }
 $db->exec('COMMIT;');
-echo 'Inserted ' . $cnt . ' rows.' . PHP_EOL;
+$db->close();
