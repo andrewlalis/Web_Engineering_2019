@@ -8,28 +8,28 @@ Class Util
     {
     }
 
-    private function makeNonNestedRecursive(array &$out, $key, array $in): void{
+    private function unNestRecursive(array &$out, $key, array $in): void{
         foreach($in as $k=>$v){
             if(is_array($v)){
-                $this->makeNonNestedRecursive($out, $key . $k . '_', $v);
+                $this->unNestRecursive($out, $key . $k . '_', $v);
             }else{
                 $out[$key . $k] = $v;
             }
         }
     }
 
-    private function makeNonNested(array $in): array{
+    private function unNest(array $in): array{
         $out = array();
-        $this->makeNonNestedRecursive($out, '', $in);
+        $this->unNestRecursive($out, '', $in);
         return $out;
     }
 
     public function payloadToCsv($array, $header)
     {
         $fp = fopen($header . ".csv", "w");
-        fputcsv($fp, array_keys($array["content"][0]));
+        fputcsv($fp, array_keys($this->unNest($array["content"][0])));
         foreach ($array["content"] as $fields) {
-            fputcsv($fp, $this->makeNonNested($fields));
+            fputcsv($fp, $this->unNest($fields));
         }
         if(!empty($array["links"])) {
             fputcsv($fp, array_keys($array["links"]));
