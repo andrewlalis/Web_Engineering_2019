@@ -41,18 +41,42 @@ class Router
 
         $response = $endpoint->getResponse(
             RequestType::getType($request_type),
-            $this->extractURIParameters($uri, $endpoint->getUri())
+            $this->extractURIParameters($uri, $endpoint->getUri()),
+            $uri
         );
 
+        // This is an easy place to insert a link back to oneself.
         $return_payload = [
             'content' => $response->getPayload(),
-            'links' => [
-                'self' => $uri
-            ]
+            'links' => $response->getLinks()
         ];
 
         http_response_code($response->getCode());
-        $this->outputFormattedResponse($return_payload, $headers);
+        $this->outputFormattedResponse($this->globalizeLinks($return_payload), $headers);
+    }
+
+    /**
+     * Recursively applies the host name to all links, so that the links are ready for output.
+     *
+     * @param array $array
+     * @return array
+     */
+    private function globalizeLinks(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                if ($key === 'links') {
+                    $globalized_links = [];
+                    foreach ($value as $link_key => $link) {
+                        $globalized_links[$link_key] = HOST_NAME . $link;
+                    }
+                    $array[$key] = $globalized_links;
+                } else {
+                    $array[$key] = $this->globalizeLinks($value);
+                }
+            }
+        }
+        return $array;
     }
 
     /**

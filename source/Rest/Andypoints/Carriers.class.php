@@ -3,10 +3,10 @@
 namespace Rest\Andypoints;
 
 use Rest\AndypointTypes\GetRequest;
-use Rest\Endpoint;
+use Rest\PaginatedEndpoint;
 use Rest\Response;
 
-class Carriers extends Endpoint implements GetRequest
+class Carriers extends PaginatedEndpoint implements GetRequest
 {
     public function __construct()
     {
@@ -14,27 +14,47 @@ class Carriers extends Endpoint implements GetRequest
     }
 
     /**
-     * Responds to a GET request to this resource.
+     * Responds to a paginated request, returning a subsection of all possible resources.
      *
-     * @param array $path_args Any path arguments provided, with the same name as declared by the URI used to construct
-     * the endpoint which implements this interface.
-     * @param array $args A string-indexed list of arguments provided by the client.
-     *
-     * @return Response A response to this request. This contains both a response code, and an array of data to send
-     * back to the client.
+     * @param array $path_args The path arguments from the request URI.
+     * @param array $args The arguments to this request.
+     * @param int $offset The offset for the request (Used for SQL).
+     * @param int $limit The number of resources per page.
+     * @return Response A response containing only the specified page of resources.
      */
-    public function get(array $path_args, array $args): Response
+    protected function getPaginatedResponse(array $path_args, array $args, int $offset, int $limit): Response
     {
-        $results = $this->fetchCollectionWithQuery("SELECT * FROM carriers");
-        $carriers = array_map(function (array $carrier_data): array {
-            $carrier_data['links'] = [
-                'self' => $this->getUri() . '/' . $carrier_data['carrier_code']
-            ];
-            return $carrier_data;
-        }, $results);
+        $results = $this->fetchCollectionWithQuery(
+            "SELECT * FROM carriers LIMIT :limit_value OFFSET :offset_value;",
+            [
+                ':limit_value' => $limit,
+                ':offset_value' => $offset
+            ]
+        );
         return new Response(
             200,
-            $carriers
+            $results,
+            []
         );
+    }
+
+    /**
+     * @param array $path_args
+     * @param array $args
+     * @return int The total number of resources that exist at this endpoint regardless of pagination.
+     */
+    protected function getTotalResourceCount(array $path_args, array $args): int
+    {
+        $statement = $this->getDb()->prepare('SELECT COUNT(carrier_code) AS cnt FROM carriers;');
+        $result = $statement->execute();
+        return $result->fetchArray(SQLITE3_ASSOC)['cnt'];
+    }
+
+    /**
+     * @return string The name of the identifier which can be used to get a single resource from this endpoint.
+     */
+    protected function getResourceIdentifierName(): string
+    {
+        return 'carrier_code';
     }
 }

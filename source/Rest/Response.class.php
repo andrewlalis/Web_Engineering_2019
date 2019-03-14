@@ -13,10 +13,14 @@ class Response
     /** @var array */
     private $payload;
 
-    public function __construct(int $code, array $payload)
+    /** @var array */
+    private $links;
+
+    public function __construct(int $code, array $payload, array $links)
     {
         $this->code = $code;
         $this->payload = $payload;
+        $this->links = $links;
     }
 
     /**
@@ -33,5 +37,13 @@ class Response
     public function getPayload(): array
     {
         return $this->payload;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLinks(): array
+    {
+        return $this->links;
     }
 }

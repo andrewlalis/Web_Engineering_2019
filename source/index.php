@@ -1,6 +1,9 @@
 <?php
 
+// The name of the database file.
 define('DB_NAME', 'fly_ATG.sqlite');
+// The name of the server.
+define('HOST_NAME', 'http://localhost:8000');
 
 // Automatically load all classes as they are needed.
 spl_autoload_register(function (string $class_name) {
@@ -23,6 +26,8 @@ $router = new Router();
 $router->registerEndpoint(new Andypoints\Example());
 $router->registerEndpoint(new Andypoints\Airports());
 $router->registerEndpoint(new Andypoints\Airports\Airport());
+$router->registerEndpoint(new Andypoints\Carriers());
+$router->registerEndpoint(new Andypoints\Carriers\Carrier());
 
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
