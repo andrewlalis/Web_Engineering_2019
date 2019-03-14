@@ -39,7 +39,7 @@ class Router
 
         if ($endpoint === null) {
             echo 'Invalid endpoint!' . PHP_EOL;
-            http_response_code(400);
+            http_response_code(404);
             return;
         }
 

@@ -43,7 +43,7 @@ abstract class Endpoint
         switch ($request_type) {
             case RequestType::GET:
                 if ($this instanceof GetRequest) {
-                    return $this->get($uri_parameters);
+                    return $this->get($uri_parameters, $_GET);
                 }
                 break;
         }
