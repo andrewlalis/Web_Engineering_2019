@@ -9,6 +9,8 @@ namespace Utils;
  */
 Class CSVConverter
 {
+    const TEMP_FILENAME = 'temp.csv';
+
     /**
      * Un-nests (or flattens) an array.
      * @param array $out A reference to an array which will fill up with the flattened data.
@@ -41,19 +43,19 @@ Class CSVConverter
     /**
      * Converts a PHP array to a CSV file.
      * @param array $array The array to convert.
-     * @param string $header The name of the file which should hold the generated CSV.
+     * @return string
      */
-    public static function arrayToCsv(array $array, string $header)
+    public static function arrayToCsv(array $array): string
     {
-        $fp = fopen($header . ".csv", "w");
-        fputcsv($fp, array_keys(static::unNest($array["content"][0])));
-        foreach ($array["content"] as $fields) {
+        $fp = fopen(static::TEMP_FILENAME, 'w');
+        fputcsv($fp, array_keys(static::unNest($array[0])));
+        foreach ($array as $fields) {
             fputcsv($fp, static::unNest($fields));
         }
-        if(!empty($array["links"])) {
-            fputcsv($fp, array_keys($array["links"]));
-            fputcsv($fp, $array["links"]);
-        }
         fclose($fp);
+
+        $csv_string = file_get_contents(static::TEMP_FILENAME);
+        unlink(static::TEMP_FILENAME);
+        return $csv_string;
     }
 }

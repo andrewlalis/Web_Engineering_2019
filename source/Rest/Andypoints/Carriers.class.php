@@ -24,13 +24,39 @@ class Carriers extends PaginatedEndpoint implements GetRequest
      */
     protected function getPaginatedResponse(array $path_args, array $args, int $offset, int $limit): Response
     {
-        $results = $this->fetchCollectionWithQuery(
-            "SELECT * FROM carriers LIMIT :limit_value OFFSET :offset_value;",
-            [
-                ':limit_value' => $limit,
-                ':offset_value' => $offset
-            ]
-        );
+        if (isset($args['airport_code'])) {
+            $results = $this->fetchCollectionWithQuery(
+"
+SELECT *
+FROM carriers
+WHERE carrier_code IN (
+  SELECT carrier_code
+  FROM airport_carrier
+  WHERE airport_code = :airport_code
+)
+LIMIT :limit_value OFFSET :offset_value;
+",
+                [
+                    ':limit_value' => $limit,
+                    ':offset_value' => $offset,
+                    ':airport_code' => $args['airport_code']
+                ]
+            );
+        } else {
+            $results = $this->fetchCollectionWithQuery(
+"
+SELECT *
+FROM carriers
+LIMIT :limit_value OFFSET :offset_value;
+",
+                [
+                    ':limit_value' => $limit,
+                    ':offset_value' => $offset
+                ]
+            );
+        }
+
+
         return new Response(
             200,
             $results,
@@ -45,9 +71,29 @@ class Carriers extends PaginatedEndpoint implements GetRequest
      */
     protected function getTotalResourceCount(array $path_args, array $args): int
     {
-        $statement = $this->getDb()->prepare('SELECT COUNT(carrier_code) AS cnt FROM carriers;');
-        $result = $statement->execute();
-        return $result->fetchArray(SQLITE3_ASSOC)['cnt'];
+        if (isset($args['airport_code'])) {
+            return $this->fetchCollectionWithQuery(
+"
+SELECT COUNT(carrier_code) AS cnt
+FROM carriers
+WHERE carrier_code IN (
+  SELECT carrier_code
+  FROM airport_carrier
+  WHERE airport_code = :airport_code
+);
+",
+                [
+                    ':airport_code' => $args['airport_code']
+                ]
+            )[0]['cnt'];
+        } else {
+            return $this->fetchCollectionWithQuery(
+"
+SELECT COUNT(carrier_code) AS cnt
+FROM carriers;
+"
+            )[0]['cnt'];
+        }
     }
 
     /**

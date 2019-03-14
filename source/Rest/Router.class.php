@@ -3,6 +3,7 @@
 namespace Rest;
 
 use Rest\AndypointTypes\RequestType;
+use Utils\CSVConverter;
 
 /**
  * Keeps track of all existing endpoints for the API, and executes the right endpoint for a given path. To add an
@@ -88,7 +89,7 @@ class Router
     {
         if (isset($headers['Accept']) && $headers['Accept'] === 'text/csv') {
             header('Content-Type: text/csv');
-            $response = 'Unsupported content type.';
+            $response = CSVConverter::arrayToCsv($return_payload['content']);
         } else {
             header('Content-Type: application/json');
             $response = json_encode($return_payload, JSON_UNESCAPED_SLASHES);
