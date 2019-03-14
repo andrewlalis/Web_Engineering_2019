@@ -1,9 +1,9 @@
 <?php
 
-namespace Rest\Endpoints\Airports;
+namespace Rest\Andypoints\Airports;
 
 use Rest\Endpoint;
-use Rest\EndpointTypes\GetRequest;
+use Rest\AndypointTypes\GetRequest;
 use Rest\Response;
 
 class Airport extends Endpoint implements GetRequest

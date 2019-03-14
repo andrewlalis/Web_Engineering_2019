@@ -2,7 +2,7 @@
 
 namespace Rest;
 
-use Rest\EndpointTypes\RequestType;
+use Rest\AndypointTypes\RequestType;
 
 /**
  * Keeps track of all existing endpoints for the API, and executes the right endpoint for a given path. To add an

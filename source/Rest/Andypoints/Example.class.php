@@ -1,9 +1,9 @@
 <?php
 
-namespace Rest\Endpoints;
+namespace Rest\Andypoints;
 
 use Rest\Endpoint;
-use Rest\EndpointTypes\GetRequest;
+use Rest\AndypointTypes\GetRequest;
 use Rest\Response;
 
 class Example extends Endpoint implements GetRequest

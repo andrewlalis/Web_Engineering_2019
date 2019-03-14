@@ -1,6 +1,6 @@
 <?php
 
-namespace Rest\EndpointTypes;
+namespace Rest\AndypointTypes;
 
 use Rest\Response;
 

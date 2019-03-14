@@ -2,8 +2,8 @@
 
 namespace Rest;
 
-use Rest\EndpointTypes\GetRequest;
-use Rest\EndpointTypes\RequestType;
+use Rest\AndypointTypes\GetRequest;
+use Rest\AndypointTypes\RequestType;
 use SQLite3;
 
 /**

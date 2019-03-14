@@ -8,7 +8,7 @@ spl_autoload_register(function (string $class_name) {
     include(__DIR__ . '/' . $class_name . '.class.php');
 });
 
-use Rest\Endpoints;
+use Rest\Andypoints;
 use Rest\Router;
 
 // Initialize the database if it doesn't exist yet.
@@ -20,9 +20,9 @@ if (!file_exists(DB_NAME)) {
 $router = new Router();
 
 // Register a list of endpoints.
-$router->registerEndpoint(new Endpoints\Example());
-$router->registerEndpoint(new Endpoints\Airports());
-$router->registerEndpoint(new Endpoints\Airports\Airport());
+$router->registerEndpoint(new Andypoints\Example());
+$router->registerEndpoint(new Andypoints\Airports());
+$router->registerEndpoint(new Andypoints\Airports\Airport());
 
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
