@@ -13,10 +13,6 @@ class Router
     /** @var Endpoint[] The string-indexed array of endpoints registered with this router. */
     private $endpoints = [];
 
-    public function __construct()
-    {
-    }
-
     /**
      * Registers a new endpoint so that requests may be sent to it.
      * @param Endpoint $endpoint An instance of a responder which is responsible for responding to requests to the
@@ -39,7 +35,7 @@ class Router
 
         if ($endpoint === null) {
             echo 'Invalid endpoint!' . PHP_EOL;
-            http_response_code(400);
+            http_response_code(404);
             return;
         }
 
@@ -56,8 +52,24 @@ class Router
         ];
 
         http_response_code($response->getCode());
-        header('Content-Type: application/json');
-        echo json_encode($return_payload);
+        $this->outputFormattedResponse($return_payload, $headers);
+    }
+
+    /**
+     * Outputs the given return_payload to the client, formatted depending on the client's headers.
+     * @param array $return_payload The array of data to send to the client.
+     * @param array $headers The list of headers the client sent.
+     */
+    private function outputFormattedResponse(array $return_payload, array $headers)
+    {
+        if (isset($headers['Accept']) && $headers['Accept'] === 'text/csv') {
+            header('Content-Type: text/csv');
+            $response = 'Unsupported content type.';
+        } else {
+            header('Content-Type: application/json');
+            $response = json_encode($return_payload, JSON_UNESCAPED_SLASHES);
+        }
+        echo $response;
     }
 
     /**

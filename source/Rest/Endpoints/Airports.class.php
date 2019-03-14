@@ -16,12 +16,13 @@ class Airports extends Endpoint implements GetRequest
 
     public function get(array $args): Response
     {
-        $statement = $this->getDb()->prepare('SELECT * FROM airports;');
-        $result = $statement->execute();
-        $airports = [];
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $airports[] = $row;
-        }
+        $results = $this->fetchCollectionWithQuery("SELECT * FROM airports;");
+        $airports = array_map(function (array $airport_data): array {
+            $airport_data['links'] = [
+                'self' => $this->getUri() . '/' . $airport_data['airport_code']
+            ];
+            return $airport_data;
+        }, $results);
 
         return new Response(
             200,

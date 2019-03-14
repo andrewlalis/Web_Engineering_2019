@@ -63,8 +63,28 @@ abstract class Endpoint
     /**
      * @return SQLite3
      */
-    public function getDb(): SQLite3
+    protected function getDb(): SQLite3
     {
         return $this->db;
+    }
+
+    /**
+     * Fetches a collection of objects using the given query.
+     * @param string $query The SQL query which should result in a list of objects.
+     * @param array $parameters Any parameters (and their values) which should be used with the query.
+     * @return array The resulting data.
+     */
+    protected function fetchCollectionWithQuery(string $query, array $parameters = []): array
+    {
+        $stmt = $this->db->prepare($query);
+        foreach ($parameters as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $result = $stmt->execute();
+        $data = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $data[] = $row;
+        }
+        return $data;
     }
 }
