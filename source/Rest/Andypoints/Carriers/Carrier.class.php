@@ -35,7 +35,8 @@ class Carrier extends Endpoint implements GetRequest
 
         return new Response(
             200,
-            $row
+            $row,
+            []
         );
     }
 }
