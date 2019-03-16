@@ -37,3 +37,14 @@ Once a response from an endpoint is gotten, the router is responsible for format
 A number of links need to also be provided which allow navigation through the API, so this is provided by the router as well.
 
 Finally, if an error occurs during the finding of an endpoint, retrieval of a response, or other error, the router is responsible for outputting a sensible error message.
+
+#### Paginated Endpoints
+Many endpoints will return a collection of resources. It would be tedious to require each of these endpoints to manually define SQL for each possible argument that could be supplied, which would change the total number of resources returned.
+
+To simplify this, `PaginatedEndpoint` objects do most of the hard work of generating links to different pages of the endpoint's resources, and creating the proper SQL. Each endpoint which extends `PaginatedEndpoint` must therefore implement a few methods to help the parent determine what to use in its query:
+
+* `getTableDeclaration()` defines the table that will be selected from. This can be a simple table name, or as many joins as you like.
+* `getResourceIdentifierName()` defines the name of the unique identifier for each resource in the collection.
+* `getConditionBuilder()` can be extended to determine how the endpoint handles extra query parameters. In this method, you must return a `ConditionBuilder` which has had several `Conjunct` objects added to it, each of which defines one condition on which to filter the selection of resources.
+* `getResponseColumnNames()` can be extended to specify only specific columns to be included in the response. By default, all columns (`*`) are returned.
+* `getAdditionalResourceLinks()` allows for the definition of links to resources besides an individual resource itself. For example, a resource may be related to other resources, in which case it should supply links to these resources.
