@@ -56,11 +56,29 @@ class Flights extends PaginatedEndpoint
         return 'statistic_id';
     }
 
+    protected function getAdditionalResourceLinks(array $resource_item): array
+    {
+        return [
+            'airport' => Airports::LOCATION . '/' . $resource_item['airport_code'],
+            'carrier' => Carriers::LOCATION . '/' . $resource_item['carrier_code']
+        ];
+    }
+
     protected function getConditionBuilder(array $path_args, array $args): ConditionBuilder
     {
         $builder = new ConditionBuilder();
         $builder->addConjunct(new Conjunct("airport_code = :airport_code", ['airport_code' => $path_args['airport_code']]));
         $builder->addConjunct(new Conjunct("carrier_code = :carrier_code", ['carrier_code' => $path_args['carrier_code']]));
+        $builder->addConjunctIfArrayKeysExist(
+            "time_year = :year",
+            ['year'],
+            $args
+        );
+        $builder->addConjunctIfArrayKeysExist(
+            'time_month = :month',
+            ['month'],
+            $args
+        );
         return $builder;
     }
 }

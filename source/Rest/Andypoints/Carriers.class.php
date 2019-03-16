@@ -8,9 +8,11 @@ use Rest\Pagination\PaginatedEndpoint;
 
 class Carriers extends PaginatedEndpoint implements GetRequest
 {
+    const LOCATION = '/carriers';
+
     public function __construct()
     {
-        parent::__construct('/carriers');
+        parent::__construct(self::LOCATION);
     }
 
     protected function getResponseColumnNames(): array

@@ -7,10 +7,11 @@ use Rest\Pagination\PaginatedEndpoint;
 
 class Airports extends PaginatedEndpoint implements GetRequest
 {
+    const LOCATION = '/airports';
 
     public function __construct()
     {
-        parent::__construct('/airports');
+        parent::__construct(static::LOCATION);
     }
 
     /**

@@ -51,7 +51,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         // Wrap the original response in this new response, which augments the list of links for extra info.
         $paginated_response = new Response(
             $response->getCode(),
-            array_map([$this, 'addResourceSelfLink'], $response->getPayload()),
+            array_map([$this, 'addResourceSpecificLinks'], $response->getPayload()),
             array_merge($response->getLinks(), $this->generateRelativePageLinks($page, $limit, $page_count))
         );
 
@@ -65,11 +65,14 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
      * returned in an array, so this is simply one of those arrays.
      * @return array The same array, with a 'self' link added.
      */
-    private function addResourceSelfLink(array $resource_item): array
+    private function addResourceSpecificLinks(array $resource_item): array
     {
-        $resource_item['links'] = [
-            'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . '/' . $resource_item[$this->getResourceIdentifierName()]
-        ];
+        $resource_item['links'] = array_merge(
+            [
+                'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . '/' . $resource_item[$this->getResourceIdentifierName()]
+            ],
+            $this->getAdditionalResourceLinks($resource_item)
+        );
 
         return $resource_item;
     }
@@ -178,6 +181,15 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         $sql .= ';';
         $result = $this->fetchCollectionWithQuery($sql, $builder->buildPlaceholderValues());
         return $result[0]['cnt'];
+    }
+
+    /**
+     * @param array $resource_item The resource item to get links for.
+     * @return array Any string-indexed additional links to resources that are related to the current resource.
+     */
+    protected function getAdditionalResourceLinks(array $resource_item): array
+    {
+        return [];
     }
 
     /**
