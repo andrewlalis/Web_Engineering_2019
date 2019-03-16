@@ -13,6 +13,14 @@ class Carriers extends PaginatedEndpoint implements GetRequest
         parent::__construct('/carriers');
     }
 
+    protected function getResponseColumnNames(): array
+    {
+        return [
+            'carrier_code',
+            'carrier_name'
+        ];
+    }
+
     /**
      *
      * @param array $path_args

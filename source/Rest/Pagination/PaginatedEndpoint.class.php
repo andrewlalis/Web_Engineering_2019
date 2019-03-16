@@ -68,7 +68,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     private function addResourceSelfLink(array $resource_item): array
     {
         $resource_item['links'] = [
-            'self' => $this->getUri() . '/' . $resource_item[$this->getResourceIdentifierName()]
+            'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . '/' . $resource_item[$this->getResourceIdentifierName()]
         ];
 
         return $resource_item;
@@ -87,9 +87,9 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         $uri = $this->getRawURI();
 
         // Add the 'page' parameter if it doesn't exist yet.
-        if (strpos($uri, 'page=', strlen($this->getUri())) === false) {
+        if (strpos($uri, 'page=', 0) === false) {
             // Check if there are any query parameters.
-            if (strpos($uri, '?', strlen($this->getUri())) === false) {
+            if (strpos($uri, '?', 0) === false) {
                 $uri .= '?page=' . $current_page;
             } else {
                 $uri .= '&page=' . $current_page;
@@ -97,7 +97,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         }
 
         // Add the 'limit' parameter if it doesn't exist yet.
-        if (strpos($uri, 'limit=', strlen($this->getUri())) === false) {
+        if (strpos($uri, 'limit=', 0) === false) {
             $uri .= '&limit=' . $limit;
         }
 

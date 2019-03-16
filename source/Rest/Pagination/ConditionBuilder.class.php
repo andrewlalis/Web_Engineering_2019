@@ -67,7 +67,10 @@ class ConditionBuilder
      */
     public function buildConditionalClause(): string
     {
-        $sql_strings = array_map([Conjunct::class, 'getSql'], $this->conjuncts);
+        $sql_strings = [];
+        foreach ($this->conjuncts as $conjunct) {
+            $sql_strings[] = $conjunct->getSql();
+        }
         return implode(' AND ', $sql_strings);
     }
 
@@ -78,7 +81,7 @@ class ConditionBuilder
     {
         $all_placeholders = [];
         foreach ($this->conjuncts as $conjunct) {
-            array_merge($all_placeholders, $conjunct->getValues());
+            $all_placeholders = array_merge($all_placeholders, $conjunct->getValues());
         }
         $finalized_placeholders = [];
         foreach ($all_placeholders as $key => $value) {

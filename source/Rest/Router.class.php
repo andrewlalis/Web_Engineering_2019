@@ -32,6 +32,7 @@ class Router
      */
     public function respond(string $uri, string $request_type, array $headers)
     {
+        $start_time = microtime(true);
         $endpoint = $this->getMatchingEndpointForURI($uri);
 
         if ($endpoint === null) {
@@ -49,9 +50,9 @@ class Router
         // This is an easy place to insert a link back to oneself.
         $return_payload = [
             'content' => $response->getPayload(),
-            'links' => $response->getLinks()
+            'links' => $response->getLinks(),
+            'response_time' => microtime(true) - $start_time
         ];
-
         http_response_code($response->getCode());
         $this->outputFormattedResponse($this->globalizeLinks($return_payload), $headers);
     }
@@ -163,7 +164,7 @@ class Router
      */
     private function extractURIParameters(string $uri, string $endpoint_uri): array
     {
-        $uri_segments = $this->getSegmentsFromURI($uri);
+        $uri_segments = $this->getSegmentsFromURI(parse_url($uri, PHP_URL_PATH));
         $endpoint_segments = $this->getSegmentsFromURI($endpoint_uri);
 
         $vars = [];

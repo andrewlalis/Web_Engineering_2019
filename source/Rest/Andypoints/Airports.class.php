@@ -14,6 +14,19 @@ class Airports extends PaginatedEndpoint implements GetRequest
     }
 
     /**
+     * Since the user will not need the internal id, only give out the relevant columns.
+     *
+     * @return array
+     */
+    protected function getResponseColumnNames(): array
+    {
+        return [
+            'airport_code',
+            'airport_name'
+        ];
+    }
+
+    /**
      * @return string The name of the identifier which can be used to get a single resource from this endpoint.
      */
     protected function getResourceIdentifierName(): string

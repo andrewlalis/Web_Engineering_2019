@@ -28,6 +28,7 @@ $router->registerEndpoint(new Andypoints\Airports());
 $router->registerEndpoint(new Andypoints\Airports\Airport());
 $router->registerEndpoint(new Andypoints\Carriers());
 $router->registerEndpoint(new Andypoints\Carriers\Carrier());
+$router->registerEndpoint(new Andypoints\Flights());
 
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
