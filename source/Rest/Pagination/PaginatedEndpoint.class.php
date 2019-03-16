@@ -7,12 +7,20 @@ use Rest\Endpoint;
 use Rest\Response;
 
 /**
- * A paginated endpoint is one in which a page and limit can be supplied to request only a subset of the resources. The
+ * A paginated endpoint is one in which a page and limit can be supplied to request only a subset of the resources.
+ *
+ * Child classes should only need to implement
  */
 abstract class PaginatedEndpoint extends Endpoint implements GetRequest
 {
+    /** @var int If no page is supplied, this is the default page that will be assumed. */
     const DEFAULT_PAGE = 1;
+
+    /** @var int If no limit is supplied, this is the default limit for the number of resources per page. */
     const DEFAULT_LIMIT = 10;
+
+    /** @var int The absolute maximum amount of resources that can be returned per page. */
+    const MAX_LIMIT = 50;
 
     /**
      * Responds to a GET request to this resource. Since this is a paginated endpoint, it takes a page and limit
@@ -27,14 +35,18 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
      */
     public function get(array $path_args, array $args): Response
     {
-        $page = $args['page'] ?? self::DEFAULT_PAGE;
-        $limit = $args['limit'] ?? self::DEFAULT_LIMIT;
-        $offset = ($page - 1) * $limit;
-        $page_count = ceil($this->getTotalResourceCount($path_args, $args) / $limit);
+        // Either get the user's defined page, or the default values.
+        $page = $args['page'] ?? static::DEFAULT_PAGE;
+        $limit = min($args['limit'] ?? static::DEFAULT_LIMIT, static::MAX_LIMIT);
 
+        // Compute offset using some QUICK MATHS.
+        $offset = ($page - 1) * $limit;
+
+        // These two things are responsible for the querying of the database.
+        $page_count = ceil($this->getTotalResourceCount($path_args, $args) / $limit);
         $response = $this->getPaginatedResponse($path_args, $args, $offset, $limit);
 
-        // Wrap the original response in this new response, which augments the list of links.
+        // Wrap the original response in this new response, which augments the list of links for extra info.
         $paginated_response = new Response(
             $response->getCode(),
             array_map([$this, 'addResourceSelfLink'], $response->getPayload()),
@@ -150,6 +162,9 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     }
 
     /**
+     * Determines how many total resources are available at this endpoint, in total, when taking into account filtering
+     * by any user-provided arguments.
+     *
      * @param array $path_args The path arguments for this request.
      * @param array $args The arguments for this request.
      * @return int The total number of resources that exist at this endpoint regardless of pagination.
@@ -167,7 +182,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     }
 
     /**
-     * @return string
+     * @return string The name of the table that this endpoint uses, including any joins if desired.
      */
     protected abstract function getTableDeclaration(): string;
 
