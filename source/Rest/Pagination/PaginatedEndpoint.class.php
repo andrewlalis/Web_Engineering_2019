@@ -1,8 +1,10 @@
 <?php
 
-namespace Rest;
+namespace Rest\Pagination;
 
 use Rest\AndypointTypes\GetRequest;
+use Rest\Endpoint;
+use Rest\Response;
 
 /**
  * A paginated endpoint is one in which a page and limit can be supplied to request only a subset of the resources. The
@@ -101,6 +103,19 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     }
 
     /**
+     * Gets a ConditionBuilder which has had some Conjuncts added to it. Child classes should extend this method if they
+     * wish to filter any requests based on user-provided arguments.
+     *
+     * @param array $path_args
+     * @param array $args
+     * @return ConditionBuilder
+     */
+    protected function getConditionBuilder(array $path_args, array $args): ConditionBuilder
+    {
+        return new ConditionBuilder();
+    }
+
+    /**
      * Responds to a paginated request, returning a subsection of all possible resources.
      *
      * @param array $path_args The path arguments from the request URI.
@@ -109,14 +124,52 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
      * @param int $limit The number of resources per page.
      * @return Response A response containing only the specified page of resources.
      */
-    protected abstract function getPaginatedResponse(array $path_args, array $args, int $offset, int $limit): Response;
+    protected function getPaginatedResponse(array $path_args, array $args, int $offset, int $limit): Response
+    {
+        $builder = $this->getConditionBuilder($path_args, $args);
+        $sql = "SELECT * FROM " . $this->getTableDeclaration();
+        if ($builder->hasConjuncts()) {
+            $sql .= " WHERE " . $builder->buildConditionalClause();
+        }
+        $sql .= " LIMIT :limit_value OFFSET :offset_value;";
+        $values = array_merge(
+            $builder->buildPlaceholderValues(),
+            [
+                ':limit_value' => $limit,
+                ':offset_value' => $offset
+            ]
+        );
+
+        $results = $this->fetchCollectionWithQuery($sql, $values);
+
+        return new Response(
+            200,
+            $results,
+            []
+        );
+    }
 
     /**
      * @param array $path_args The path arguments for this request.
      * @param array $args The arguments for this request.
      * @return int The total number of resources that exist at this endpoint regardless of pagination.
      */
-    protected abstract function getTotalResourceCount(array $path_args, array $args): int;
+    protected function getTotalResourceCount(array $path_args, array $args): int
+    {
+        $builder = $this->getConditionBuilder($path_args, $args);
+        $sql = "SELECT COUNT(" . $this->getResourceIdentifierName() . ") as cnt FROM " . $this->getTableDeclaration();
+        if ($builder->hasConjuncts()) {
+            $sql .= " WHERE " . $builder->buildConditionalClause();
+        }
+        $sql .= ';';
+        $result = $this->fetchCollectionWithQuery($sql, $builder->buildPlaceholderValues());
+        return $result[0]['cnt'];
+    }
+
+    /**
+     * @return string
+     */
+    protected abstract function getTableDeclaration(): string;
 
     /**
      * @return string The name of the identifier which can be used to get a single resource from this endpoint.
