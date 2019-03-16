@@ -26,6 +26,6 @@ class Airports extends PaginatedEndpoint implements GetRequest
      */
     protected function getTableDeclaration(): string
     {
-        return 'airport';
+        return 'airports';
     }
 }

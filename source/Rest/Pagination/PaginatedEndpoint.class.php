@@ -9,7 +9,9 @@ use Rest\Response;
 /**
  * A paginated endpoint is one in which a page and limit can be supplied to request only a subset of the resources.
  *
- * Child classes should only need to implement
+ * Child classes should only need to implement getTableDeclaration and getResourceIdentifierName to add a new paginated
+ * endpoint, but it may also be desirable to implement getConditionBuilder if the endpoint can be filtered by user-
+ * supplied parameters, or getResponseColumnNames if the response should only contain some columns and not all.
  */
 abstract class PaginatedEndpoint extends Endpoint implements GetRequest
 {
@@ -115,19 +117,6 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     }
 
     /**
-     * Gets a ConditionBuilder which has had some Conjuncts added to it. Child classes should extend this method if they
-     * wish to filter any requests based on user-provided arguments.
-     *
-     * @param array $path_args
-     * @param array $args
-     * @return ConditionBuilder
-     */
-    protected function getConditionBuilder(array $path_args, array $args): ConditionBuilder
-    {
-        return new ConditionBuilder();
-    }
-
-    /**
      * Responds to a paginated request, returning a subsection of all possible resources.
      *
      * @param array $path_args The path arguments from the request URI.
@@ -139,7 +128,17 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     protected function getPaginatedResponse(array $path_args, array $args, int $offset, int $limit): Response
     {
         $builder = $this->getConditionBuilder($path_args, $args);
-        $sql = "SELECT * FROM " . $this->getTableDeclaration();
+
+        // Get the list of columns that should be selected for, or all of them.
+        $column_names_list = $this->getResponseColumnNames();
+        if (empty($column_names_list)) {
+            $column_names = '*';
+        } else {
+            $column_names = implode(', ', $column_names_list);
+        }
+
+        // Build the SQL statement here.
+        $sql = "SELECT " . $column_names . " FROM " . $this->getTableDeclaration();
         if ($builder->hasConjuncts()) {
             $sql .= " WHERE " . $builder->buildConditionalClause();
         }
@@ -179,6 +178,28 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         $sql .= ';';
         $result = $this->fetchCollectionWithQuery($sql, $builder->buildPlaceholderValues());
         return $result[0]['cnt'];
+    }
+
+    /**
+     * Gets a ConditionBuilder which has had some Conjuncts added to it. Child classes should extend this method if they
+     * wish to filter any requests based on user-provided arguments.
+     *
+     * @param array $path_args
+     * @param array $args
+     * @return ConditionBuilder
+     */
+    protected function getConditionBuilder(array $path_args, array $args): ConditionBuilder
+    {
+        return new ConditionBuilder();
+    }
+
+    /**
+     * @return array The list of columns that should be selected when getting resources. By default this is empty, which
+     * means all columns will be returned.
+     */
+    protected function getResponseColumnNames(): array
+    {
+        return [];
     }
 
     /**
