@@ -6,12 +6,12 @@ use Rest\Pagination\ConditionBuilder;
 use Rest\Pagination\Conjunct;
 use Rest\Pagination\PaginatedEndpoint;
 
-class Flights extends PaginatedEndpoint
+class Statistics extends PaginatedEndpoint
 {
 
     public function __construct()
     {
-        parent::__construct('/flights/{airport_code}/{carrier_code}');
+        parent::__construct('/statistics/{airport_code}/{carrier_code}');
     }
 
     protected function getResponseColumnNames(): array

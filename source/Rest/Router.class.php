@@ -36,16 +36,14 @@ class Router
         $endpoint = $this->getMatchingEndpointForURI($uri);
 
         if ($endpoint === null) {
-            echo 'Invalid endpoint!' . PHP_EOL;
-            http_response_code(404);
-            return;
+            $response = $this->endpointNotFound();
+        } else {
+            $response = $endpoint->getResponse(
+                RequestType::getType($request_type),
+                $this->extractURIParameters($uri, $endpoint->getUri()),
+                $uri
+            );
         }
-
-        $response = $endpoint->getResponse(
-            RequestType::getType($request_type),
-            $this->extractURIParameters($uri, $endpoint->getUri()),
-            $uri
-        );
 
         // This is an easy place to insert a link back to oneself.
         $return_payload = [
@@ -58,6 +56,24 @@ class Router
     }
 
     /**
+     * What to do when the client tries to access an endpoint that cannot be found.
+     */
+    private function endpointNotFound(): Response
+    {
+        return new Response(
+            404,
+            [
+                'error_message' => 'Resource not found.'
+            ],
+            [
+                'available_resources' => array_map(function (Endpoint $endpoint): string {
+                    return $endpoint->getUri();
+                }, $this->endpoints)
+            ]
+        );
+    }
+
+    /**
      * Recursively applies the host name to all links, so that the links are ready for output.
      *
      * @param array $array
@@ -65,17 +81,28 @@ class Router
      */
     private function globalizeLinks(array $array): array
     {
+        $globalized_links = $array;
+        foreach ($array as $key => $value) {
+            if (is_array($value) && $key === 'links') {
+                $globalized_links['links'] = $this->globalizeLinksRecursive($value);
+            }
+        }
+        return $globalized_links;
+    }
+
+    /**
+     * Recursively traverse an array and append the host name to any values.
+     *
+     * @param array $array The array to traverse.
+     * @return array
+     */
+    private function globalizeLinksRecursive(array $array): array
+    {
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                if ($key === 'links') {
-                    $globalized_links = [];
-                    foreach ($value as $link_key => $link) {
-                        $globalized_links[$link_key] = HOST_NAME . $link;
-                    }
-                    $array[$key] = $globalized_links;
-                } else {
-                    $array[$key] = $this->globalizeLinks($value);
-                }
+                $array[$key] = $this->globalizeLinks($value);
+            } else {
+                $array[$key] = HOST_NAME . $value;
             }
         }
         return $array;
