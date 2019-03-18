@@ -2,15 +2,17 @@
 
 namespace Rest\Andypoints;
 
+use Rest\AndypointTypes\PostRequest;
 use Rest\Pagination\ConditionBuilder;
 use Rest\Pagination\PaginatedEndpoint;
+use Rest\Response;
 
 /**
  * Endpoint for all statistics, optionally filtered by an airport, carrier, month, year, or any combination of those.
  *
  * Some other endpoints extend this one by providing more specific details for each statistic entry.
  */
-class Statistics extends PaginatedEndpoint
+class Statistics extends PaginatedEndpoint implements PostRequest
 {
     const LOCATION = '/statistics';
 
@@ -89,5 +91,39 @@ class Statistics extends PaginatedEndpoint
             $args
         );
         return $builder;
+    }
+
+    /**
+     * Responds to a POST request to this resource.
+     *
+     * @param array $path_args Any path arguments the client has provided.
+     * @param array $data The post data the client has supplied.
+     *
+     * @return Response A response to this request. This contains both a response code, and an array of data to send
+     * back to the client.
+     */
+    public function post(array $path_args, array $data): Response
+    {
+        $insert_statistic_statement = $this->getDb()->prepare(
+            "
+INSERT INTO statistics (airport_id, carrier_id, time_label, time_year, time_month)
+VALUES (:airport_id, :carrier_id, :time_label, :time_year, :time_month)
+"
+        );
+        $insert_statistic_statement->bindValue(':airport_id', $data['airport_id']);
+        $insert_statistic_statement->bindValue(':carrier_id', $data['carrier_id']);
+        $insert_statistic_statement->bindValue(':time_label', $data['year'] . '/' . $data['month']);
+        $insert_statistic_statement->bindValue(':time_year', $data['year']);
+        $insert_statistic_statement->bindValue(':time_month', $data['month']);
+
+        $result = $insert_statistic_statement->execute();
+
+        if (!empty($result)) {
+            return new Response(
+                201,
+                ['message' => 'Resource created.', 'id' => $this->getDb()->lastInsertRowID()],
+                []
+            );
+        }
     }
 }
