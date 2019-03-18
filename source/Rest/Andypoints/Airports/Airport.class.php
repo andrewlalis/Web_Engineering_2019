@@ -33,6 +33,9 @@ class Airport extends Endpoint implements GetRequest
 
         $result = $statement->execute();
         $row = $result->fetchArray(SQLITE3_ASSOC);
+        if ($row === false) {
+            $row = [];
+        }
 
         //$row = $this->getDb()->query("SELECT * FROM airports WHERE airport_code = 'ORD';")->fetchArray(SQLITE3_ASSOC);
 

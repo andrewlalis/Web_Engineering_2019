@@ -83,8 +83,12 @@ class Router
     {
         $globalized_links = $array;
         foreach ($array as $key => $value) {
-            if (is_array($value) && $key === 'links') {
-                $globalized_links['links'] = $this->globalizeLinksRecursive($value);
+            if (is_array($value)) {
+                if ($key === 'links') {
+                    $globalized_links['links'] = $this->globalizeLinksRecursive($value);
+                } else {
+                    $globalized_links[$key] = $this->globalizeLinks($value);
+                }
             }
         }
         return $globalized_links;

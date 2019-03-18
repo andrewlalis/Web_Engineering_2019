@@ -24,11 +24,17 @@ $router = new Router();
 
 // Register a list of endpoints.
 $router->registerEndpoint(new Andypoints\Example());
+
 $router->registerEndpoint(new Andypoints\Airports());
 $router->registerEndpoint(new Andypoints\Airports\Airport());
+
 $router->registerEndpoint(new Andypoints\Carriers());
 $router->registerEndpoint(new Andypoints\Carriers\Carrier());
-$router->registerEndpoint(new Andypoints\Statistics());
+
+$router->registerEndpoint(new Andypoints\Statistics(Andypoints\Statistics::LOCATION));
+$router->registerEndpoint(new Andypoints\Statistics\Flights());
+$router->registerEndpoint(new Andypoints\Statistics\Delays());
+$router->registerEndpoint(new Andypoints\Statistics\MinutesDelayed());
 
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());

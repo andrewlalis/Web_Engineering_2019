@@ -32,6 +32,9 @@ class Carrier extends Endpoint implements GetRequest
         $statement->bindValue(':carrier_code', $code);
         $result = $statement->execute();
         $row = $result->fetchArray(SQLITE3_ASSOC);
+        if ($row === false) {
+            $row = [];
+        }
 
         return new Response(
             200,

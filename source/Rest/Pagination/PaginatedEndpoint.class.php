@@ -69,7 +69,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     {
         $resource_item['links'] = array_merge(
             [
-                'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . '/' . $resource_item[$this->getResourceIdentifierName()]
+                'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . $this->getResourceIdentifierName($resource_item)
             ],
             $this->getAdditionalResourceLinks($resource_item)
         );
@@ -174,7 +174,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     protected function getTotalResourceCount(array $path_args, array $args): int
     {
         $builder = $this->getConditionBuilder($path_args, $args);
-        $sql = "SELECT COUNT(" . $this->getResourceIdentifierName() . ") as cnt FROM " . $this->getTableDeclaration();
+        $sql = "SELECT COUNT(*) as cnt FROM " . $this->getTableDeclaration();
         if ($builder->hasConjuncts()) {
             $sql .= " WHERE " . $builder->buildConditionalClause();
         }
@@ -220,7 +220,8 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     protected abstract function getTableDeclaration(): string;
 
     /**
+     * @param array $resource_item The resource item to get the identifier for. This provides context if needed.
      * @return string The name of the identifier which can be used to get a single resource from this endpoint.
      */
-    protected abstract function getResourceIdentifierName(): string;
+    protected abstract function getResourceIdentifierName(array $resource_item): string;
 }
