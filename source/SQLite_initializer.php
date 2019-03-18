@@ -1,32 +1,81 @@
 <?php
 
-function dropOldTables(Sqlite3 $db) {
+$start_time = microtime(true);
+
+function dropOldTables(Sqlite3 $db)
+{
+    echo 'Dropping old tables...' . PHP_EOL;
 	$drop_script = "DROP TABLE ";
-	foreach (['airports', 'carriers', 'airport_carrier'] as $table_name) {
+	foreach (['airports', 'carriers', 'statistics', 'statistics_flights', 'statistics_delays', 'statistics_minutes_delayed'] as $table_name) {
+	    echo "\tDropping " . $table_name . PHP_EOL;
 	    $db->query($drop_script . $table_name);
 	}
+	echo 'Done.' . PHP_EOL;
 }
 
-function createTables(Sqlite3 $db) {
-	$db->exec("CREATE TABLE airports(airport_code varchar(10) PRIMARY KEY, airport_name varchar(254))");
-	$db->exec("CREATE TABLE carriers(carrier_code varchar(10) PRIMARY KEY, carrier_name varchar(254))");
-	$db->exec("CREATE TABLE airport_carrier(airport_code varchar(10), carrier_code varchar(254), flights_cancelled int, flights_on_time int, flights_delayed int, flights_diverted int, delays_late_aircraft int, delays_weather int, delays_security int, delays_national_aviation_system int, delays_carrier int, minutes_delayed_late_aircraft int, minutes_delayed_weather int, minutes_delayed_carrier int, minutes_delayed_security int, minutes_delayed_total int, minutes_delayed_national_aviation_system int, time_label varchar(254), time_year int, time_month int)");
+function createTables(Sqlite3 $db)
+{
+    $tables = <<<SQL
+CREATE TABLE airports(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  airport_code VARCHAR(10) NOT NULL UNIQUE,
+  airport_name VARCHAR(254) NOT NULL UNIQUE
+);
+
+CREATE TABLE carriers(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  carrier_code VARCHAR(10) NOT NULL UNIQUE,
+  carrier_name VARCHAR(254) NOT NULL UNIQUE
+);
+
+CREATE TABLE statistics(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  airport_id INTEGER,
+  carrier_id INTEGER,
+  time_label varchar(254),
+  time_year INTEGER,
+  time_month INTEGER,
+  FOREIGN KEY (airport_id) REFERENCES airports(id),
+  FOREIGN KEY (carrier_id) REFERENCES carriers(id)
+);
+
+CREATE TABLE statistics_flights(
+  statistic_id INTEGER PRIMARY KEY,
+  cancelled INTEGER,
+  on_time INTEGER,
+  delayed INTEGER,
+  diverted INTEGER,
+  total INTEGER,
+  FOREIGN KEY (statistic_id) REFERENCES statistics(id)
+);
+
+CREATE TABLE statistics_delays(
+  statistic_id INTEGER PRIMARY KEY,
+  late_aircraft INTEGER,
+  weather INTEGER,
+  security INTEGER,
+  national_aviation_system INTEGER,
+  carrier INTEGER,
+  FOREIGN KEY (statistic_id) REFERENCES statistics(id)
+);
+
+CREATE TABLE statistics_minutes_delayed(
+  statistic_id INTEGER PRIMARY KEY,
+  late_aircraft INTEGER,
+  weather INTEGER,
+  carrier INTEGER,
+  security INTEGER,
+  total INTEGER,
+  national_aviation_system INTEGER,
+  FOREIGN KEY (statistic_id) REFERENCES statistics(id)
+);
+SQL;
+    echo 'Creating tables...' . PHP_EOL;
+    $db->exec($tables);
+    echo 'Done.' . PHP_EOL;
 }
 
 ini_set('memory_limit', '-1');
-
-$dataset = json_decode(file_get_contents("../dataset/airlines.json"), true);
-
-// Extract the entity data for use later.
-$airports = [];
-$carriers = [];
-foreach ($dataset as $key => $value) {
-    $object = $value;
-    $airport = $object['airport'];
-    $airports[$airport['code']] = $airport['name'];
-    $carrier = $object['carrier'];
-    $carriers[$carrier['code']] = $carrier['name'];
-}
 
 $db = new SQLite3("fly_ATG.sqlite"); // Andrew Tom George
 
@@ -37,102 +86,117 @@ if(!$db) {
 dropOldTables($db);
 createTables($db);
 
-$db->exec('BEGIN;');
-$sql = 'INSERT INTO airports(airport_code, airport_name)'
-      .'VALUES (:airport_code, :airport_name)';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(':airport_code', $airport_code);
-$stmt->bindParam(':airport_name', $airport_name);
-foreach ($airports as $code => $name) {
-	$airport_code = $code;
-	$airport_name = $name;
-    $stmt->execute();
+$insert_airport_stmt = $db->prepare("
+INSERT OR IGNORE INTO airports (airport_code, airport_name)
+VALUES (:airport_code, :airport_name);
+");
+$insert_airport_stmt->bindParam(':airport_code', $airport_code);
+$insert_airport_stmt->bindParam(':airport_name', $airport_name);
+
+$insert_carrier_stmt = $db->prepare("
+INSERT OR IGNORE INTO carriers (carrier_code, carrier_name)
+VALUES (:carrier_code, :carrier_name);
+");
+$insert_carrier_stmt->bindParam(':carrier_code', $carrier_code);
+$insert_carrier_stmt->bindParam(':carrier_name', $carrier_name);
+
+$insert_statistic_stmt = $db->prepare("
+INSERT INTO statistics (airport_id, carrier_id, time_label, time_year, time_month)
+VALUES (:airport_id, :carrier_id, :time_label, :time_year, :time_month);
+");
+$insert_statistic_stmt->bindParam(':airport_id', $airport_id);
+$insert_statistic_stmt->bindParam(':carrier_id', $carrier_id);
+$insert_statistic_stmt->bindParam(':time_label', $time_label);
+$insert_statistic_stmt->bindParam(':time_year', $time_year);
+$insert_statistic_stmt->bindParam(':time_month', $time_month);
+
+$insert_flight_stmt = $db->prepare("
+INSERT INTO statistics_flights (statistic_id, cancelled, on_time, total, delayed, diverted)
+VALUES (:statistic_id, :flights_cancelled, :flights_on_time, :flights_total, :flights_delayed, :flights_diverted);
+");
+$insert_flight_stmt->bindParam(':statistic_id', $statistic_id);
+$insert_flight_stmt->bindParam(':flights_cancelled', $flights_cancelled);
+$insert_flight_stmt->bindParam(':flights_on_time', $flights_on_time);
+$insert_flight_stmt->bindParam(':flights_total', $flights_total);
+$insert_flight_stmt->bindParam(':flights_delayed', $flights_delayed);
+$insert_flight_stmt->bindParam(':flights_diverted', $flights_diverted);
+
+$insert_delay_stmt = $db->prepare("
+INSERT INTO statistics_delays (statistic_id, late_aircraft, weather, security, national_aviation_system, carrier)
+VALUES (:statistic_id, :delays_late_aircraft, :delays_weather, :delays_security, :delays_national_aviation_system, :delays_carrier);
+");
+$insert_delay_stmt->bindParam(':statistic_id', $statistic_id);
+$insert_delay_stmt->bindParam(':delays_late_aircraft', $delays_late_aircraft);
+$insert_delay_stmt->bindParam(':delays_weather', $delays_weather);
+$insert_delay_stmt->bindParam(':delays_security', $delays_security);
+$insert_delay_stmt->bindParam(':delays_national_aviation_system', $delays_national_aviation_system);
+$insert_delay_stmt->bindParam(':delays_carrier', $delays_carrier);
+
+$insert_minutes_delayed_stmt = $db->prepare("
+INSERT INTO statistics_minutes_delayed (statistic_id, late_aircraft, weather, carrier, security, total, national_aviation_system)
+VALUES (:statistic_id, :minutes_delayed_late_aircraft, :minutes_delayed_weather, :minutes_delayed_carrier, :minutes_delayed_security, :minutes_delayed_total, :minutes_delayed_national_aviation_system);
+");
+$insert_minutes_delayed_stmt->bindParam(':statistic_id', $statistic_id);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_late_aircraft', $statistic_id);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_weather', $minutes_delayed_weather);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_carrier', $minutes_delayed_carrier);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_security', $minutes_delayed_carrier);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_total', $minutes_delayed_total);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_national_aviation_system', $minutes_delayed_national_aviation_system);
+
+$dataset = json_decode(file_get_contents("../dataset/airlines.json"), true);
+
+echo 'Inserting data...' . PHP_EOL;
+$count = 0;
+$db->exec("BEGIN;");
+foreach ($dataset as $key => $object) {
+    $airport_code = $object['airport']['code'];
+    $airport_name = $object['airport']['name'];
+    $insert_airport_stmt->execute();
+    $result = $db->querySingle("SELECT * FROM airports WHERE airport_code = '" . $airport_code . "';");
+    $airport_id = $result;
+
+    $carrier_code = $object['carrier']['code'];
+    $carrier_name = $object['carrier']['name'];
+    $insert_carrier_stmt->execute();
+    $result = $db->querySingle("SELECT * FROM carriers WHERE carrier_code = '" . $carrier_code . "';");
+    $carrier_id = $result;
+
+    $time_label = $object['time']['label'];
+    $time_year = $object['time']['year'];
+    $time_month = $object['time']['month'];
+    $insert_statistic_stmt->execute();
+    $statistic_id = $db->lastInsertRowID();
+
+    $flights = $object['statistics']['flights'];
+    $flights_cancelled = $flights['cancelled'];
+    $flights_on_time = $flights['on time'];
+    $flights_total = $flights['total'];
+    $flights_delayed = $flights['delayed'];
+    $flights_diverted = $flights['diverted'];
+    $insert_flight_stmt->execute();
+
+    $delays = $object['statistics']['# of delays'];
+    $delays_late_aircraft = $delays['late aircraft'];
+    $delays_weather = $delays['weather'];
+    $delays_security = $delays['security'];
+    $delays_national_aviation_system = $delays['national aviation system'];
+    $delays_carrier = $delays['carrier'];
+    $insert_delay_stmt->execute();
+
+    $minutes_delayed = $object['statistics']['minutes delayed'];
+    $minutes_delayed_late_aircraft = $minutes_delayed['late aircraft'];
+    $minutes_delayed_weather = $minutes_delayed['weather'];
+    $minutes_delayed_carrier = $minutes_delayed['carrier'];
+    $minutes_delayed_security = $minutes_delayed['security'];
+    $minutes_delayed_total = $minutes_delayed['total'];
+    $minutes_delayed_national_aviation_system = $minutes_delayed['national aviation system'];
+    $insert_minutes_delayed_stmt->execute();
+
+    $count++;
 }
-$db->exec('COMMIT;');
+$db->exec("COMMIT;");
+$end_time = microtime(true);
+echo 'Done. Processed ' . $count . ' objects. Time: ' . ($end_time - $start_time) . 's' . PHP_EOL;
 
-$db->exec('BEGIN;');
-$sql = 'INSERT INTO `carriers` (carrier_code, carrier_name)'
-      .'VALUES (:carrier_code, :carrier_name)';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(':carrier_code', $carrier_code);
-$stmt->bindParam(':carrier_name', $carrier_name);
-foreach ($carriers as $code => $name) {
-    $carrier_code = $code;
-    $carrier_name = $name;
-    $stmt->execute();
-}
-$db->exec('COMMIT;');
-
-$db->exec('BEGIN;');
-$sql = 'INSERT INTO airport_carrier(airport_code, carrier_code,'
-      .'flights_cancelled, flights_on_time, flights_delayed, flights_diverted,'
-      .'delays_late_aircraft, delays_weather, delays_security, delays_national_aviation_system, delays_carrier,'
-      .'minutes_delayed_late_aircraft, minutes_delayed_weather, minutes_delayed_carrier, minutes_delayed_security, minutes_delayed_total, minutes_delayed_national_aviation_system,'
-      .'time_label, time_year, time_month)'
-      .'VALUES (:airport_code, :carrier_code,'
-      .':flights_cancelled, :flights_on_time, :flights_delayed, :flights_diverted,'
-      .':delays_late_aircraft, :delays_weather, :delays_security, :delays_national_aviation_system, :delays_carrier,'
-      .':minutes_delayed_late_aircraft, :minutes_delayed_weather, :minutes_delayed_carrier, :minutes_delayed_security, :minutes_delayed_total, :minutes_delayed_national_aviation_system,'
-      .':time_label, :time_year, :time_month)';
-$stmt = $db->prepare($sql);
-$stmt->bindParam(':airport_code', $airport_code);
-$stmt->bindParam(':carrier_code', $carrier_code);
-$stmt->bindParam(':flights_cancelled', $flights_cancelled);
-$stmt->bindParam(':flights_on_time', $flights_on_time);
-$stmt->bindParam(':flights_delayed', $flights_delayed);
-$stmt->bindParam(':flights_diverted', $flights_diverted);
-$stmt->bindParam(':delays_late_aircraft', $delays_late_aircraft);
-$stmt->bindParam(':delays_weather', $delays_weather);
-$stmt->bindParam(':delays_security',$delays_security);
-$stmt->bindParam(':delays_national_aviation_system', $delays_national_aviation_system);
-$stmt->bindParam(':delays_carrier', $delays_carrier);
-$stmt->bindParam(':minutes_delayed_late_aircraft', $minutes_delayed_late_aircraft);
-$stmt->bindParam(':minutes_delayed_weather', $minutes_delayed_weather);
-$stmt->bindParam(':minutes_delayed_security', $minutes_delayed_security);
-$stmt->bindParam(':minutes_delayed_national_aviation_system', $minutes_delayed_national_aviation_system);
-$stmt->bindParam(':minutes_delayed_carrier', $minutes_delayed_carrier);
-$stmt->bindParam(':minutes_delayed_total', $minutes_delayed_total);
-$stmt->bindParam(':time_label', $time_label);
-$stmt->bindParam(':time_year', $time_year);
-$stmt->bindParam(':time_month', $time_month);
-
-$cnt = 0;
-foreach ($dataset as $data) {
-    $cnt = $cnt + 1;
-    $airport_code = $data['airport']['code'];
-    $carrier_code = $data['carrier']['code'];
-    $flights = $data['statistics']['flights'];
-    $delay_counts = $data['statistics']['# of delays'];
-    $delay_minutes = $data['statistics']['minutes delayed'];
-
-    if (!empty($flights)) {
-        $flights_cancelled = $flights['cancelled'];
-        $flights_on_time = $flights['on time'];
-        $flights_delayed = $flights['delayed'];
-        $flights_diverted = $flights['diverted'];
-    }
-
-    if (!empty($delay_counts)) {
-        $delays_late_aircraft = $delay_counts['late aircraft'];
-        $delays_weather = $delay_counts['weather'];
-        $delays_security = $delay_counts['security'];
-        $delays_national_aviation_system = $delay_counts['national aviation system'];
-        $delays_carrier = $delay_counts['carrier'];
-    }
-
-    if (!empty($delay_minutes)) {
-        $minutes_delayed_late_aircraft = $delay_minutes['late aircraft'];
-        $minutes_delayed_weather = $delay_minutes['weather'];
-        $minutes_delayed_carrier = $delay_minutes['carrier'];
-        $minutes_delayed_security = $delay_minutes['security'];
-        $minutes_delayed_total = $delay_minutes['total'];
-        $minutes_delayed_national_aviation_system = $delay_minutes['national aviation system'];
-    }
-
-    $time_label = $data['time']['label'];
-    $time_year = $data['time']['year'];
-    $time_month = $data['time']['month'];
-    $stmt->execute();
-}
-$db->exec('COMMIT;');
 $db->close();

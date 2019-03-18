@@ -2,7 +2,8 @@
 
 namespace Rest;
 
-use Rest\EndpointTypes\RequestType;
+use Rest\AndypointTypes\RequestType;
+use Utils\CSVConverter;
 
 /**
  * Keeps track of all existing endpoints for the API, and executes the right endpoint for a given path. To add an
@@ -31,6 +32,7 @@ class Router
      */
     public function respond(string $uri, string $request_type, array $headers)
     {
+        $start_time = microtime(true);
         $endpoint = $this->getMatchingEndpointForURI($uri);
 
         if ($endpoint === null) {
@@ -41,18 +43,42 @@ class Router
 
         $response = $endpoint->getResponse(
             RequestType::getType($request_type),
-            $this->extractURIParameters($uri, $endpoint->getUri())
+            $this->extractURIParameters($uri, $endpoint->getUri()),
+            $uri
         );
 
+        // This is an easy place to insert a link back to oneself.
         $return_payload = [
             'content' => $response->getPayload(),
-            'links' => [
-                'self' => $uri
-            ]
+            'links' => $response->getLinks(),
+            'response_time' => microtime(true) - $start_time
         ];
-
         http_response_code($response->getCode());
-        $this->outputFormattedResponse($return_payload, $headers);
+        $this->outputFormattedResponse($this->globalizeLinks($return_payload), $headers);
+    }
+
+    /**
+     * Recursively applies the host name to all links, so that the links are ready for output.
+     *
+     * @param array $array
+     * @return array
+     */
+    private function globalizeLinks(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                if ($key === 'links') {
+                    $globalized_links = [];
+                    foreach ($value as $link_key => $link) {
+                        $globalized_links[$link_key] = HOST_NAME . $link;
+                    }
+                    $array[$key] = $globalized_links;
+                } else {
+                    $array[$key] = $this->globalizeLinks($value);
+                }
+            }
+        }
+        return $array;
     }
 
     /**
@@ -64,7 +90,7 @@ class Router
     {
         if (isset($headers['Accept']) && $headers['Accept'] === 'text/csv') {
             header('Content-Type: text/csv');
-            $response = 'Unsupported content type.';
+            $response = CSVConverter::arrayToCsv($return_payload['content']);
         } else {
             header('Content-Type: application/json');
             $response = json_encode($return_payload, JSON_UNESCAPED_SLASHES);
@@ -138,7 +164,7 @@ class Router
      */
     private function extractURIParameters(string $uri, string $endpoint_uri): array
     {
-        $uri_segments = $this->getSegmentsFromURI($uri);
+        $uri_segments = $this->getSegmentsFromURI(parse_url($uri, PHP_URL_PATH));
         $endpoint_segments = $this->getSegmentsFromURI($endpoint_uri);
 
         $vars = [];

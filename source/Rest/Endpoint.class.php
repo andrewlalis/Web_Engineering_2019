@@ -2,8 +2,8 @@
 
 namespace Rest;
 
-use Rest\EndpointTypes\GetRequest;
-use Rest\EndpointTypes\RequestType;
+use Rest\AndypointTypes\GetRequest;
+use Rest\AndypointTypes\RequestType;
 use SQLite3;
 
 /**
@@ -16,6 +16,12 @@ abstract class Endpoint
 
     /** @var SQLite3 */
     private $db;
+
+    /**
+     * @var string $raw_uri The raw URI which has been requested by a client. This is updated each time the endpoint
+     * is invoked.
+     */
+    private $raw_uri;
 
     /**
      * Constructs a new endpoint at the given uri.
@@ -36,20 +42,44 @@ abstract class Endpoint
      * Gets this endpoint's response to a request.
      * @param int $request_type The type of request (GET, POST, etc.)
      * @param array $uri_parameters An array of parameters as prescribed by this endpoint's uri.
+     * @param string $raw_uri The raw URI that the client requested, with query parameters.
      * @return Response A response object, ready to be sent back to the client.
      */
-    public function getResponse(int $request_type, array $uri_parameters): Response
+    public function getResponse(int $request_type, array $uri_parameters, string $raw_uri): Response
     {
+        $this->raw_uri = $raw_uri;
+
+        $response = null;
         switch ($request_type) {
             case RequestType::GET:
                 if ($this instanceof GetRequest) {
-                    return $this->get($uri_parameters);
+                    $response = $this->get($uri_parameters, $_GET);
                 }
                 break;
         }
-        return new Response(400, [
-            'Unsupported request'
-        ]);
+
+        if ($response === null) {
+            return new Response(
+                400,
+                [
+                    'message' => 'Unsupported request method.',
+                    'attempted_method' => $request_type
+                ],
+                []
+            );
+        }
+
+        // Add the 'self' link if none is given yet.
+        $links = $response->getLinks();
+        if (!key_exists('self', $links)) {
+            $links['self'] = $raw_uri;
+        }
+
+        return new Response(
+            $response->getCode(),
+            $response->getPayload(),
+            $links
+        );
     }
 
     /**
@@ -66,6 +96,14 @@ abstract class Endpoint
     protected function getDb(): SQLite3
     {
         return $this->db;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getRawURI(): string
+    {
+        return $this->raw_uri;
     }
 
     /**

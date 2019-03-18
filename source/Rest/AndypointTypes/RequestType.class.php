@@ -1,8 +1,10 @@
 <?php
 
-namespace Rest\EndpointTypes;
+namespace Rest\AndypointTypes;
 
-
+/**
+ * A class which defines some constants for different request types.
+ */
 class RequestType
 {
     const NONE = 0;
