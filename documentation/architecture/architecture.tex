@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{fontspec}
+\setmainfont{Olde English}
+
+\fvset{tabsize=2}
+
+\lstset{
+    breaklines=true,
+    tabsize=2,
+    basicstyle=\small
+}
+
+\title{Architecture \\ \small{Web Engineering, 2019}}
+\author{Andrew Lalis, Project Leader and Framework Specialist \\ 
+George Rakshiev, Design and Requirements Engineer \\ 
+Tom den Boon, Full Stack Software Superhero}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+	While some information regarding the architectural choices of this project will be discussed in this document, to get a more in-depth explanation of the Andypoints framework which is used exclusively in this project, please consult the readme file available in the 'sources' directory.
+	
+	Note that currently, this document is a work-in-progress as the technology we use evolves to fit the requirements of the project.
+	
+\section{Technology Choices}
+	Because both Tom and Andrew have some working knowledge of PHP, this was chosen as the programming language with which to design the API. It was decided that no pre-existing framework would be used, and instead an in-house solution would be created which is minimalistic and does just enough to get the job done, without adding unnecessary bloating to the project.
+	
+	George is, due to medical reasons, unable to program in PHP, and so is the designated design specialist, and will dedicate his resources to developing a front-end representation of the project when the time comes. For such a front-end representation, it is anticipated that the Andypoints Framework will be extended to include a very rudimentary templating engine that can parse template files into raw PHP, to give as much speed as possible.
+
+\end{document}
