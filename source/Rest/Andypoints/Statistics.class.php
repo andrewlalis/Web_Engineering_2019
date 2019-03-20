@@ -3,6 +3,7 @@
 namespace Rest\Andypoints;
 
 use Rest\AndypointTypes\PostRequest;
+use Rest\ErrorResponse;
 use Rest\Pagination\ConditionBuilder;
 use Rest\Pagination\PaginatedEndpoint;
 use Rest\Response;
@@ -104,25 +105,44 @@ class Statistics extends PaginatedEndpoint implements PostRequest
      */
     public function post(array $path_args, array $data): Response
     {
-        $insert_statistic_statement = $this->getDb()->prepare(
-            "
+        // First check if all the required parameters are available.
+        if (!(isset($data['airport_id'])
+            && isset($data['carrier_id'])
+            && isset($data['year'])
+            && isset($data['month']))) {
+            return new ErrorResponse(400, 'Bad request. Not all identifying information was given for a new statistic.');
+        }
+
+        $time_label = $data['year'] . '/' . $data['month'];
+
+        $insert_statistic_statement = $this->getDb()->prepare("
 INSERT INTO statistics (airport_id, carrier_id, time_label, time_year, time_month)
 VALUES (:airport_id, :carrier_id, :time_label, :time_year, :time_month)
-"
-        );
+");
+
         $insert_statistic_statement->bindValue(':airport_id', $data['airport_id']);
         $insert_statistic_statement->bindValue(':carrier_id', $data['carrier_id']);
-        $insert_statistic_statement->bindValue(':time_label', $data['year'] . '/' . $data['month']);
+        $insert_statistic_statement->bindValue(':time_label', $time_label);
         $insert_statistic_statement->bindValue(':time_year', $data['year']);
         $insert_statistic_statement->bindValue(':time_month', $data['month']);
 
         $result = $insert_statistic_statement->execute();
 
+        if ($result === false) {
+            return new ErrorResponse(
+                500,
+                'Database error occurred.',
+                [
+                    'db_error' => $this->getDb()->lastErrorMsg(),
+                    'db_error_code' => $this->getDb()->lastErrorCode()
+                ]
+            );
+        }
+
         if (!empty($result)) {
             return new Response(
                 201,
-                ['message' => 'Resource created.', 'id' => $this->getDb()->lastInsertRowID()],
-                []
+                ['message' => 'Resource created.', 'id' => $this->getDb()->lastInsertRowID()]
             );
         }
     }

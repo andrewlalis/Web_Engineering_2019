@@ -78,13 +78,12 @@ abstract class Endpoint
         ) {
             $response = $this->delete($uri_parameters, $request_data);
         } else {
-            return new Response(
+            return new ErrorResponse(
                 400,
+                'Unsupported request method.',
                 [
-                    'message' => 'Unsupported request method.',
                     'attempted_method' => $request_type
-                ],
-                []
+                ]
             );
         }
 

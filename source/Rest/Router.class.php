@@ -60,11 +60,10 @@ class Router
      */
     private function endpointNotFound(): Response
     {
-        return new Response(
+        return new ErrorResponse(
             404,
-            [
-                'error_message' => 'Resource not found.'
-            ],
+            'Resource not found.',
+            [],
             [
                 'available_resources' => array_map(function (Endpoint $endpoint): string {
                     return $endpoint->getUri();
