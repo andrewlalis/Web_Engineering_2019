@@ -2,6 +2,8 @@
 
 namespace Rest\Andypoints;
 
+use Rest\AndypointTypes\DeleteRequest;
+use Rest\AndypointTypes\PatchRequest;
 use Rest\AndypointTypes\PostRequest;
 use Rest\ErrorResponse;
 use Rest\Pagination\ConditionBuilder;
@@ -13,7 +15,7 @@ use Rest\Response;
  *
  * Some other endpoints extend this one by providing more specific details for each statistic entry.
  */
-class Statistics extends PaginatedEndpoint implements PostRequest
+class Statistics extends PaginatedEndpoint implements PostRequest, PatchRequest, DeleteRequest
 {
     const LOCATION = '/statistics';
 
@@ -106,29 +108,33 @@ class Statistics extends PaginatedEndpoint implements PostRequest
     public function post(array $path_args, array $data): Response
     {
         // First check if all the required parameters are available.
-        if (!(isset($data['airport_id'])
-            && isset($data['carrier_id'])
+        if (!(isset($data['airport_code'])
+            && isset($data['carrier_code'])
             && isset($data['year'])
             && isset($data['month']))) {
             return new ErrorResponse(400, 'Bad request. Not all identifying information was given for a new statistic.');
         }
-
         $time_label = $data['year'] . '/' . $data['month'];
+        $success = $this->insertIntoCollection(
+            'statistics',
+            [
+                'airport_id' => '(SELECT id FROM airports WHERE airport_code = :airport_code)',
+                'carrier_id' => '(SELECT id FROM carriers WHERE carrier_code = :carrier_code)',
+                'time_label' => ':time_label',
+                'time_year' => ':time_year',
+                'time_month' => ':time_month'
+            ],
+            [
+                ':airport_code' => $data['airport_code'],
+                ':carrier_code' => $data['carrier_code'],
+                ':time_label' => $time_label,
+                ':time_year' => $data['year'],
+                ':time_month' => $data['month']
+            ]
+        );
 
-        $insert_statistic_statement = $this->getDb()->prepare("
-INSERT INTO statistics (airport_id, carrier_id, time_label, time_year, time_month)
-VALUES (:airport_id, :carrier_id, :time_label, :time_year, :time_month)
-");
-
-        $insert_statistic_statement->bindValue(':airport_id', $data['airport_id']);
-        $insert_statistic_statement->bindValue(':carrier_id', $data['carrier_id']);
-        $insert_statistic_statement->bindValue(':time_label', $time_label);
-        $insert_statistic_statement->bindValue(':time_year', $data['year']);
-        $insert_statistic_statement->bindValue(':time_month', $data['month']);
-
-        $result = $insert_statistic_statement->execute();
-
-        if ($result === false) {
+        // Check if the execution failed for whatever reason.
+        if ($success === false) {
             return new ErrorResponse(
                 500,
                 'Database error occurred.',
@@ -139,11 +145,43 @@ VALUES (:airport_id, :carrier_id, :time_label, :time_year, :time_month)
             );
         }
 
-        if (!empty($result)) {
-            return new Response(
-                201,
-                ['message' => 'Resource created.', 'id' => $this->getDb()->lastInsertRowID()]
-            );
-        }
+        return new Response(
+            201,
+            [
+                'message' => 'Resource created.',
+                'id' => $this->getDb()->lastInsertRowID()
+            ]
+        );
+    }
+
+    /**
+     * Responds to a DELETE request at this endpoint (Does not mean that something must deleted, just that a response
+     * is required).
+     *
+     * @param array $path_args Any path arguments provided, as specified by the endpoint's constructor.
+     * @param array $data Any additional data sent from the client.
+     * @return Response The response to the client's request.
+     */
+    public function delete(array $path_args, array $data): Response
+    {
+        $delete_statement = $this->getDb()->prepare("
+DELETE FROM statistics
+WHERE
+      airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code)
+      AND carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code)
+      AND time_year = :year AND time_month = :month;
+");
+    }
+
+    /**
+     * Responds to a PATCH request.
+     *
+     * @param array $path_args A string-indexed list of path arguments as they are defined by the endpoint's constructor
+     * @param array $data The array of data containing things to patch at this endpoint.
+     * @return Response A response to the request.
+     */
+    public function patch(array $path_args, array $data): Response
+    {
+        // TODO: Implement patch() method.
     }
 }

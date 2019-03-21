@@ -18,6 +18,7 @@ class Carriers extends PaginatedEndpoint implements GetRequest
     protected function getResponseColumnNames(): array
     {
         return [
+            'id',
             'carrier_code',
             'carrier_name'
         ];

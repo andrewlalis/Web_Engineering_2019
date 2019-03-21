@@ -154,7 +154,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
             ]
         );
 
-        $results = $this->fetchCollectionWithQuery($sql, $values);
+        $results = $this->fetchCollection($sql, $values);
 
         return new Response(
             200,
@@ -179,7 +179,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
             $sql .= " WHERE " . $builder->buildConditionalClause();
         }
         $sql .= ';';
-        $result = $this->fetchCollectionWithQuery($sql, $builder->buildPlaceholderValues());
+        $result = $this->fetchCollection($sql, $builder->buildPlaceholderValues());
         return $result[0]['cnt'];
     }
 

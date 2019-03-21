@@ -8,6 +8,7 @@ use Rest\AndypointTypes\PatchRequest;
 use Rest\AndypointTypes\PostRequest;
 use Rest\AndypointTypes\RequestType;
 use SQLite3;
+use SQLite3Result;
 
 /**
  * Represents an endpoint for the API, or where a request and its parameters are processed.
@@ -130,7 +131,7 @@ abstract class Endpoint
      * @param array $parameters Any parameters (and their values) which should be used with the query.
      * @return array The resulting data.
      */
-    protected function fetchCollectionWithQuery(string $query, array $parameters = []): array
+    protected function fetchCollection(string $query, array $parameters = []): array
     {
         $stmt = $this->db->prepare($query);
         foreach ($parameters as $key => $value) {
@@ -143,4 +144,30 @@ abstract class Endpoint
         }
         return $data;
     }
+
+    /**
+     * Inserts a new object into a table, and returns whether the operation was successful.
+     *
+     * @param string $table_name The name of the table into which data should be inserted.
+     * @param array $column_expressions A string-indexed array of column expressions. That means that each key
+     * represents the name of a column in the table, and the corresponding value is simply the expression for that
+     * column, whether it be just a simple placeholder, or a nested query.
+     * @param array $placeholders A string-indexed array of all the placeholders which appear in any column expressions,
+     * and their corresponding values.
+     *
+     * @return bool True if the insert was successful, or false if an error occurred.
+     */
+    protected function insertIntoCollection(string $table_name, array $column_expressions, array $placeholders): bool
+    {
+        $sql = "INSERT INTO " . $table_name . " (" . implode(',', array_keys($column_expressions)) . ") VALUES (" . implode(',', array_values($column_expressions)) . ")";
+        $stmt = $this->getDb()->prepare($sql);
+        foreach ($placeholders as $name => $value) {
+            $stmt->bindValue($name, $value);
+        }
+        $result = $stmt->execute();
+
+        return $result !== false;
+    }
+
+
 }
