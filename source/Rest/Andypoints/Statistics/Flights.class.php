@@ -114,4 +114,9 @@ class Flights extends Statistics
             ]
         );
     }
+
+    public function delete(array $path_args, array $data): Response
+    {
+        return parent::deleteChild('statistics_flights', $data);
+    }
 }

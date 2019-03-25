@@ -219,5 +219,22 @@ abstract class Endpoint
         return $result !== false;
     }
 
-
+    /**
+     * Deletes a resource from this collection.
+     *
+     * @param string $table_name
+     * @param array $where_clauses
+     * @param array $placeholders
+     * @return bool
+     */
+    protected function deleteFromCollection(string $table_name, array $where_clauses, array $placeholders): bool
+    {
+        $sql = "DELETE FROM " . $table_name . " WHERE " . implode(' AND ', $where_clauses) . ";";
+        $stmt = $this->getDb()->prepare($sql);
+        foreach ($placeholders as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $result = $stmt->execute();
+        return $result !== false;
+    }
 }

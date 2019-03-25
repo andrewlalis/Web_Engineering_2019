@@ -181,13 +181,62 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
      */
     public function delete(array $path_args, array $data): Response
     {
-        $delete_statement = $this->getDb()->prepare("
-DELETE FROM statistics
-WHERE
-      airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code)
-      AND carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code)
-      AND time_year = :year AND time_month = :month;
-");
+        $success = $this->deleteFromCollection(
+            'statistics',
+            [
+                'airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code)',
+                'carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code)',
+                'time_year = :year AND time_month = :month'
+            ],
+            [
+                ':airport_code' => $data['airport_code'],
+                ':carrier_code' => $data['carrier_code'],
+                ':year' => $data['year'],
+                ':month' => $data['month']
+            ]
+        );
+
+        if (!$success) {
+            return new ErrorResponse(500, 'Failed to delete the specified resource.');
+        } else {
+            return new Response(204, [
+                'message' => 'Resource deleted successfully.'
+            ]);
+        }
+    }
+
+    /**
+     * Deletes a child statistic resource using a specialized query such that the client does not need to know about
+     * arbitrary database indices.
+     * @param string $table_name The name of the child's table.
+     * @param array $data The request data, containing identifying information for the resource to delete.
+     * @return Response Either an error response, or a successful deletion resulting in a normal response.
+     */
+    protected function deleteChild(string $table_name, array $data): Response
+    {
+        $success = $this->deleteFromCollection(
+            $table_name,
+            [
+                'statistic_id = (SELECT id FROM statistics WHERE 
+                airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) AND 
+                carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code) AND 
+                time_year = :year AND time_month = :month)'
+            ],
+            [
+                ':airport_code' => $data['airport_code'],
+                ':carrier_code' => $data['carrier_code'],
+                ':year' => $data['year'],
+                ':month' => $data['month']
+            ]
+        );
+
+        if (!$success) {
+            return new ErrorResponse(500, 'Failed to delete the specified resource.');
+        } else {
+            return new Response(204, [
+                'message' => 'Resource deleted successfully.'
+            ]);
+        }
     }
 
     /**
