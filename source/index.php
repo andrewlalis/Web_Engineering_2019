@@ -36,5 +36,7 @@ $router->registerEndpoint(new Andypoints\Statistics\Flights());
 $router->registerEndpoint(new Andypoints\Statistics\Delays());
 $router->registerEndpoint(new Andypoints\Statistics\MinutesDelayed());
 
+$router->registerEndpoint(new Andypoints\AggregateCarrierStatistics());
+
 // Process the current request.
 $router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
