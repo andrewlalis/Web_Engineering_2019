@@ -3,7 +3,6 @@
 namespace Rest\Andypoints\Statistics;
 
 use Rest\Andypoints\Statistics;
-use Rest\ErrorResponse;
 use Rest\Response;
 
 /**
