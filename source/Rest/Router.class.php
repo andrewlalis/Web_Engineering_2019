@@ -32,7 +32,6 @@ class Router
      */
     public function respond(string $uri, string $request_type, array $headers)
     {
-        var_dump($uri);
         $start_time = microtime(true);
         $endpoint = $this->getMatchingEndpointForURI($uri);
 
@@ -67,7 +66,7 @@ class Router
             [],
             [
                 'available_resources' => array_map(function (Endpoint $endpoint): string {
-                    return $endpoint->getUri();
+                    return HOST_NAME . API_NAME . $endpoint->getUri();
                 }, $this->endpoints)
             ]
         );
@@ -106,7 +105,7 @@ class Router
             if (is_array($value)) {
                 $array[$key] = $this->globalizeLinks($value);
             } else {
-                $array[$key] = HOST_NAME . $value;
+                $array[$key] = HOST_NAME . API_NAME . $value;
             }
         }
         return $array;

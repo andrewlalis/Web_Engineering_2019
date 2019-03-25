@@ -41,7 +41,7 @@ if (substr($_SERVER['REQUEST_URI'], 0, strlen(API_NAME)) === API_NAME) {
     $rest_router->registerEndpoint(new Andypoints\AggregateCarrierStatistics());
 
     // Process the current request.
-    $rest_router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
+    $rest_router->respond(substr($_SERVER['REQUEST_URI'], strlen(API_NAME)), $_SERVER['REQUEST_METHOD'], getallheaders());
 } else {
     // Process a call which will return some HTML.
 
