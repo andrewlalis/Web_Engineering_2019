@@ -7,7 +7,7 @@ use Rest\Response;
 /**
  * Endpoints which implement this interface must define behavior for when the client POSTs some data.
  */
-interface PostRequest
+interface PostRequest extends MandatoryParameterRequest
 {
     /**
      * Responds to a POST request to this resource.

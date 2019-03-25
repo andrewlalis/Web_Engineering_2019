@@ -7,7 +7,7 @@ use Rest\Response;
 /**
  * Endpoints which implement this interface must define some functionality for when a PATCH request is received.
  */
-interface PatchRequest
+interface PatchRequest extends MandatoryParameterRequest
 {
     /**
      * Responds to a PATCH request.

@@ -107,13 +107,30 @@ class Statistics extends PaginatedEndpoint implements PostRequest, PatchRequest,
      */
     public function post(array $path_args, array $data): Response
     {
-        // First check if all the required parameters are available.
-        if (!(isset($data['airport_code'])
-            && isset($data['carrier_code'])
-            && isset($data['year'])
-            && isset($data['month']))) {
-            return new ErrorResponse(400, 'Bad request. Not all identifying information was given for a new statistic.');
+        // First check if this resource already exists.
+        $select_statistic_stmt = $this->getDb()->prepare("
+SELECT * FROM statistics
+WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) AND
+      carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code) AND
+      time_year = :time_year AND
+      time_month = :time_month
+");
+        $select_statistic_stmt->bindValue(':airport_code', $data['airport_code']);
+        $select_statistic_stmt->bindValue(':carrier_code', $data['carrier_code']);
+        $select_statistic_stmt->bindValue(':time_year', $data['year']);
+        $select_statistic_stmt->bindValue(':time_month', $data['month']);
+        $result = $select_statistic_stmt->execute();
+        $selected_results = $result->fetchArray(SQLITE3_ASSOC);
+        if (!empty($selected_results)) {
+            return new ErrorResponse(
+                400,
+                'Resource already exists.',
+                [
+                    $selected_results
+                ]
+            );
         }
+
         $time_label = $data['year'] . '/' . $data['month'];
         $success = $this->insertIntoCollection(
             'statistics',
@@ -182,6 +199,19 @@ WHERE
      */
     public function patch(array $path_args, array $data): Response
     {
-        // TODO: Implement patch() method.
+        return new ErrorResponse(500, 'Not yet implemented');
+    }
+
+    /**
+     * @return array An array of strings, each representing a parameter that must be present in requests to the resource
+     */
+    public function getMandatoryParameters(): array
+    {
+        return [
+            'airport_code',
+            'carrier_code',
+            'year',
+            'month'
+        ];
     }
 }

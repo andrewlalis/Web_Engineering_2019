@@ -7,7 +7,7 @@ use Rest\Response;
 /**
  * Endpoints which implement this interface must define functionality for deleting a resource.
  */
-interface DeleteRequest
+interface DeleteRequest extends MandatoryParameterRequest
 {
     /**
      * Responds to a DELETE request at this endpoint (Does not mean that something must deleted, just that a response

@@ -3,6 +3,8 @@
 namespace Rest\Andypoints\Statistics;
 
 use Rest\Andypoints\Statistics;
+use Rest\ErrorResponse;
+use Rest\Response;
 
 /**
  * Endpoint for statistics about flights concerning a carrier at an airport.
@@ -41,5 +43,16 @@ class Flights extends Statistics
             LEFT JOIN statistics_flights
                 ON statistics_flights.statistic_id = statistics.id
         ";
+    }
+
+
+    public function post(array $path_args, array $data): Response
+    {
+        $parent_response = parent::post($path_args, $data);
+        if ($parent_response instanceof ErrorResponse) {
+            return $parent_response;
+        }
+
+
     }
 }

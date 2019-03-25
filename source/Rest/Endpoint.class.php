@@ -4,6 +4,7 @@ namespace Rest;
 
 use Rest\AndypointTypes\DeleteRequest;
 use Rest\AndypointTypes\GetRequest;
+use Rest\AndypointTypes\MandatoryParameterRequest;
 use Rest\AndypointTypes\PatchRequest;
 use Rest\AndypointTypes\PostRequest;
 use Rest\AndypointTypes\RequestType;
@@ -67,17 +68,20 @@ abstract class Endpoint
             $request_type === RequestType::POST
             && $this instanceof PostRequest
         ) {
-            $response = $this->post($uri_parameters, $_POST);
+            $mandatory_error = $this->getMandatoryParameterErrorResponse($_POST);
+            $response = $mandatory_error ?? $this->post($uri_parameters, $_POST);
         } else if (
             $request_type === RequestType::PATCH
             && $this instanceof PatchRequest
         ) {
-            $response = $this->patch($uri_parameters, $request_data);
+            $mandatory_error = $this->getMandatoryParameterErrorResponse($request_data);
+            $response = $mandatory_error ?? $this->patch($uri_parameters, $request_data);
         } else if (
             $request_type === RequestType::DELETE
             && $this instanceof DeleteRequest
         ) {
-            $response = $this->delete($uri_parameters, $request_data);
+            $mandatory_error = $this->getMandatoryParameterErrorResponse($request_data);
+            $response = $mandatory_error ?? $this->delete($uri_parameters, $request_data);
         } else {
             return new ErrorResponse(
                 400,
@@ -123,6 +127,52 @@ abstract class Endpoint
     protected function getRawURI(): string
     {
         return $this->raw_uri;
+    }
+
+    /**
+     * Gets the error response for if this endpoint does not have all mandatory parameters, or returns null if no error
+     * was generated.
+     *
+     * @param array $request_data The request data sent by the client.
+     *
+     * @return ErrorResponse|null
+     */
+    private function getMandatoryParameterErrorResponse(array $request_data)
+    {
+        if (!$this->hasMandatoryParameters($request_data)) {
+            if ($this instanceof MandatoryParameterRequest) {
+                $mandatory_parameters = $this->getMandatoryParameters();
+            } else {
+                $mandatory_parameters = [];
+            }
+            return new ErrorResponse(
+                400,
+                'Not all mandatory parameters for this endpoint were provided.',
+                [
+                    'mandatory_parameters' => $mandatory_parameters,
+                    'provided_parameters' => $request_data
+                ]
+            );
+        }
+        return null;
+    }
+
+    /**
+     * Determines if this endpoint has all the mandatory parameters needed to fulfill a request.
+     *
+     * @param array $parameters Any request parameters provided by the client.
+     *
+     * @return bool True if the parameters passed to this endpoint satisfy the mandatory parameters, or false otherwise.
+     */
+    private function hasMandatoryParameters(array $parameters): bool
+    {
+        if ($this instanceof MandatoryParameterRequest) {
+            return array_reduce($this->getMandatoryParameters(), function(bool $carry, string $parameter_key) use ($parameters): bool {
+                return $carry && (array_key_exists($parameter_key, $parameters) && !empty($parameters[$parameter_key]));
+            }, true);
+        } else {
+            return true;
+        }
     }
 
     /**
