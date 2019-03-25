@@ -172,6 +172,75 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
     }
 
     /**
+     * A method which child endpoints of this statistics endpoint can use to implement POST. It first checks if the
+     * parent resource exists, and then checks if the child exists, and if all goes well, inserts the new data.
+     *
+     * @param string $table_name The name of the table that the child class uses.
+     * @param array $data The data to be posted. Each key in the data should be a valid column name in the table.
+     *
+     * @return Response
+     */
+    protected function postChild(string $table_name, array $data): Response
+    {
+        $parent_response = $this->post([], $data);
+        // Check if there was a duplicate when inserting the parent. If the parent already exists, continue anyway.
+        if ($parent_response instanceof ErrorResponse) {
+            if ($parent_response->getCode() !== 409) {
+                return $parent_response;
+            } else {
+                $parent_id = $parent_response->getContext()['id'];
+            }
+        } else {
+            $parent_id = $parent_response->getPayload()['id'];
+        }
+
+        // Check if this resource exists.
+        $select_stmt = $this->getDb()->prepare("SELECT * FROM " . $table_name . " WHERE statistic_id = :statistic_id;");
+        $select_stmt->bindValue(':statistic_id', $parent_id);
+        $result = $select_stmt->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        if (!empty($row)) {
+            return new ErrorResponse(
+                409,
+                'Resource already exists.',
+                [
+                    'statistic_id' => $parent_id
+                ]
+            );
+        }
+        $placeholders = [];
+        $placeholder_values = [];
+        foreach ($data as $key => $value) {
+            $placeholders[$key] = ':' . $key;
+            $placeholder_values[$placeholders[$key]] = $value ?? 0;
+        }
+        $success = $this->insertIntoCollection(
+            $table_name,
+            array_merge(['statistic_id' => ':statistic_id'], $placeholders),
+            array_merge([':statistic_id' => $parent_id], $placeholder_values)
+        );
+
+        if ($success === false) {
+            return new ErrorResponse(
+                500,
+                'Database error occurred.',
+                [
+                    'db_error' => $this->getDb()->lastErrorMsg(),
+                    'db_error_code' => $this->getDb()->lastErrorCode()
+                ]
+            );
+        }
+
+        return new Response(
+            201,
+            [
+                'message' => 'Resource created.',
+                'id' => $this->getDb()->lastInsertRowID()
+            ]
+        );
+    }
+
+    /**
      * Responds to a DELETE request at this endpoint (Does not mean that something must deleted, just that a response
      * is required).
      *
