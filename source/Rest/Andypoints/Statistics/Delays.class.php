@@ -3,7 +3,6 @@
 namespace Rest\Andypoints\Statistics;
 
 use Rest\Andypoints\Statistics;
-use Rest\ErrorResponse;
 use Rest\Response;
 
 /**
@@ -48,5 +47,10 @@ class Delays extends Statistics
     public function delete(array $path_args, array $data): Response
     {
         return parent::deleteChild('statistics_delays', $data);
+    }
+
+    public function patch(array $path_args, array $data): Response
+    {
+        return parent::patchChild('statistics_delays', $data);
     }
 }

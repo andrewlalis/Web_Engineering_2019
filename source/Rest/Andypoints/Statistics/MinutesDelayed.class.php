@@ -49,4 +49,9 @@ class MinutesDelayed extends Statistics
     {
         return parent::deleteChild('statistics_minutes_delayed', $data);
     }
+
+    public function patch(array $path_args, array $data): Response
+    {
+        return parent::patchChild('statistics_minutes_delayed', $data);
+    }
 }

@@ -2,6 +2,9 @@
 
 namespace Rest\Andypoints;
 
+use Rest\Andypoints\Statistics\Delays;
+use Rest\Andypoints\Statistics\Flights;
+use Rest\Andypoints\Statistics\MinutesDelayed;
 use Rest\AndypointTypes\DeleteRequest;
 use Rest\AndypointTypes\PatchRequest;
 use Rest\AndypointTypes\PostRequest;
@@ -97,6 +100,50 @@ class Statistics extends PaginatedEndpoint implements PostRequest, PatchRequest,
     }
 
     /**
+     * Finds the id of a statistic identified by the given parameters.
+     *
+     * @param string $airport_code
+     * @param string $carrier_code
+     * @param int $year
+     * @param int $month
+     * @return int|null
+     */
+    private function getStatisticId(string $airport_code, string $carrier_code, int $year, int $month)
+    {
+        $select_statistic_stmt = $this->getDb()->prepare("
+SELECT * FROM statistics
+WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) AND
+      carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code) AND
+      time_year = :time_year AND
+      time_month = :time_month
+");
+        $select_statistic_stmt->bindValue(':airport_code', $airport_code);
+        $select_statistic_stmt->bindValue(':carrier_code', $carrier_code);
+        $select_statistic_stmt->bindValue(':time_year', $year);
+        $select_statistic_stmt->bindValue(':time_month', $month);
+        $result = $select_statistic_stmt->execute();
+        if ($result === false) {
+            return null;
+        } else {
+            return $result->fetchArray(SQLITE3_ASSOC)['id'];
+        }
+    }
+
+    /**
+     * Determines if a statistic identified by some parameters exists.
+     *
+     * @param string $airport_code
+     * @param string $carrier_code
+     * @param int $year
+     * @param int $month
+     * @return bool
+     */
+    private function statisticExists(string $airport_code, string $carrier_code, int $year, int $month): bool
+    {
+        return ($this->getStatisticId($airport_code, $carrier_code, $year, $month) !== null);
+    }
+
+    /**
      * Responds to a POST request to this resource.
      *
      * @param array $path_args Any path arguments the client has provided.
@@ -108,26 +155,11 @@ class Statistics extends PaginatedEndpoint implements PostRequest, PatchRequest,
     public function post(array $path_args, array $data): Response
     {
         // First check if this resource already exists.
-        $select_statistic_stmt = $this->getDb()->prepare("
-SELECT * FROM statistics
-WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) AND
-      carrier_id = (SELECT id FROM carriers WHERE carrier_code = :carrier_code) AND
-      time_year = :time_year AND
-      time_month = :time_month
-");
-        $select_statistic_stmt->bindValue(':airport_code', $data['airport_code']);
-        $select_statistic_stmt->bindValue(':carrier_code', $data['carrier_code']);
-        $select_statistic_stmt->bindValue(':time_year', $data['year']);
-        $select_statistic_stmt->bindValue(':time_month', $data['month']);
-        $result = $select_statistic_stmt->execute();
-        $selected_results = $result->fetchArray(SQLITE3_ASSOC);
-        if (!empty($selected_results)) {
+       $exists = $this->statisticExists($data['airport_code'], $data['carrier_code'], $data['year'], $data['month']);
+        if ($exists) {
             return new ErrorResponse(
                 409,
-                'Resource already exists.',
-                [
-                    $selected_results
-                ]
+                'Resource already exists.'
             );
         }
 
@@ -317,7 +349,61 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
      */
     public function patch(array $path_args, array $data): Response
     {
-        return new ErrorResponse(500, 'Not yet implemented');
+        return new ErrorResponse(
+            403,
+            'You may not patch a statistical record, only a subset of the record.',
+            [],
+            [
+                Flights::LOCATION,
+                Delays::LOCATION,
+                MinutesDelayed::LOCATION
+            ]
+        );
+    }
+
+    public function patchChild(string $table_name, array $data): Response
+    {
+        $exists = $this->statisticExists($data['airport_code'], $data['carrier_code'], $data['year'], $data['month']);
+        if (!$exists) {
+            return new ErrorResponse(
+                404,
+                'No resource identified by the specified parameters exists.'
+            );
+        }
+
+        $statistic_id = $this->getStatisticId($data['airport_code'], $data['carrier_code'], $data['year'], $data['month']);
+        $set_statements = [];
+        $set_values = [
+            ':statistic_id' => $statistic_id
+        ];
+        foreach ($data as $key => $value) {
+            $set_statements[] = $key . ' = :' . $key;
+            $set_values[':' . $key] = $value;
+        }
+        $sql = "UPDATE " . $table_name . " SET " . implode(', ', $set_statements) . " WHERE statistic_id = :statistic_id";
+        $update_stmt = $this->getDb()->prepare($sql);
+        foreach ($set_values as $placeholder => $value) {
+            $update_stmt->bindValue($placeholder, $value);
+        }
+        $result = $update_stmt->execute();
+
+        if ($result !== false) {
+            return new Response(
+                200,
+                [
+                    'message' => 'Statistics patched successfully.'
+                ]
+            );
+        } else {
+            return new ErrorResponse(
+                500,
+                'Could not patch the statistic.',
+                [
+                    'db_error' => $this->getDb()->lastErrorMsg(),
+                    'db_error_code' => $this->getDb()->lastErrorCode()
+                ]
+            );
+        }
     }
 
     /**

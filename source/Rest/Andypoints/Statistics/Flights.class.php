@@ -54,4 +54,9 @@ class Flights extends Statistics
     {
         return parent::deleteChild('statistics_flights', $data);
     }
+
+    public function patch(array $path_args, array $data): Response
+    {
+        return parent::patchChild('statistics_flights', $data);
+    }
 }
