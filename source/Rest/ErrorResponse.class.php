@@ -26,4 +26,12 @@ class ErrorResponse extends Response
             $links
         );
     }
+
+    /**
+     * @return array The context for this error response.
+     */
+    public function getContext(): array
+    {
+        return $this->getPayload()['context'];
+    }
 }

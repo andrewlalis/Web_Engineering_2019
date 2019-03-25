@@ -123,7 +123,7 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
         $selected_results = $result->fetchArray(SQLITE3_ASSOC);
         if (!empty($selected_results)) {
             return new ErrorResponse(
-                400,
+                409,
                 'Resource already exists.',
                 [
                     $selected_results
