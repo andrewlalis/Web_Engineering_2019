@@ -32,6 +32,7 @@ class Router
      */
     public function respond(string $uri, string $request_type, array $headers)
     {
+        var_dump($uri);
         $start_time = microtime(true);
         $endpoint = $this->getMatchingEndpointForURI($uri);
 

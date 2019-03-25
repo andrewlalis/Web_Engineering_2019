@@ -4,6 +4,8 @@
 define('DB_NAME', 'fly_ATG.sqlite');
 // The name of the server.
 define('HOST_NAME', 'http://localhost:8000');
+// The sub-domain for API calls.
+define('API_NAME', '/api');
 
 // Automatically load all classes as they are needed.
 spl_autoload_register(function (string $class_name) {
@@ -19,24 +21,28 @@ if (!file_exists(DB_NAME)) {
     require_once 'SQLite_initializer.php';
 }
 
-// Delegate functionality to the router.
-$router = new Router();
 
-// Register a list of endpoints.
-$router->registerEndpoint(new Andypoints\Example());
 
-$router->registerEndpoint(new Andypoints\Airports());
-$router->registerEndpoint(new Andypoints\Airports\Airport());
+// If this is an API call, then use the rest router.
+if (substr($_SERVER['REQUEST_URI'], 0, strlen(API_NAME)) === API_NAME) {
+    // Delegate functionality to the router.
+    $rest_router = new Router();
 
-$router->registerEndpoint(new Andypoints\Carriers());
-$router->registerEndpoint(new Andypoints\Carriers\Carrier());
+    // Register a list of endpoints.
+    $rest_router->registerEndpoint(new Andypoints\Example());
+    $rest_router->registerEndpoint(new Andypoints\Airports());
+    $rest_router->registerEndpoint(new Andypoints\Airports\Airport());
+    $rest_router->registerEndpoint(new Andypoints\Carriers());
+    $rest_router->registerEndpoint(new Andypoints\Carriers\Carrier());
+    $rest_router->registerEndpoint(new Andypoints\Statistics(Andypoints\Statistics::LOCATION));
+    $rest_router->registerEndpoint(new Andypoints\Statistics\Flights());
+    $rest_router->registerEndpoint(new Andypoints\Statistics\Delays());
+    $rest_router->registerEndpoint(new Andypoints\Statistics\MinutesDelayed());
+    $rest_router->registerEndpoint(new Andypoints\AggregateCarrierStatistics());
 
-$router->registerEndpoint(new Andypoints\Statistics(Andypoints\Statistics::LOCATION));
-$router->registerEndpoint(new Andypoints\Statistics\Flights());
-$router->registerEndpoint(new Andypoints\Statistics\Delays());
-$router->registerEndpoint(new Andypoints\Statistics\MinutesDelayed());
+    // Process the current request.
+    $rest_router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
+} else {
+    // Process a call which will return some HTML.
 
-$router->registerEndpoint(new Andypoints\AggregateCarrierStatistics());
-
-// Process the current request.
-$router->respond($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], getallheaders());
+}
