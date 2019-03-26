@@ -6,6 +6,8 @@ define('DB_NAME', 'fly_ATG.sqlite');
 define('HOST_NAME', 'http://localhost:8000');
 // The sub-domain for API calls.
 define('API_NAME', '/api');
+// The sub-domain for non-API calls.
+define('TEMPLATE_NAME', 'Templates');
 
 // Automatically load all classes as they are needed.
 spl_autoload_register(function (string $class_name) {
@@ -43,6 +45,7 @@ if (substr($_SERVER['REQUEST_URI'], 0, strlen(API_NAME)) === API_NAME) {
     // Process the current request.
     $rest_router->respond(substr($_SERVER['REQUEST_URI'], strlen(API_NAME)), $_SERVER['REQUEST_METHOD'], getallheaders());
 } else {
-    // Process a call which will return some HTML.
-
+    // Process a call which will return some HTML or other resources.
+    $resource_router = new ResourceRouter();
+    $resource_router->respond($_SERVER['REQUEST_URI']);
 }

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <script
+            src="http://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<h1>Home Page</h1>
+<p>
+    Here you'll find all the information which is also available via our API.
+</p>
+
+</body>
+
+<!-- Handlebars Templates -->
+<script id="template-entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <h3>Code: {{code}}</h3>
+        <h3>Name: {{name}}</h3>
+    </div>
+</script>
+
+<!-- Custom JS -->
+<script type="text/javascript" src="js/ajax_loader.js"></script>
+
+</html>
