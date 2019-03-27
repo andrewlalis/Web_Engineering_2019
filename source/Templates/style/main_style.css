@@ -1,3 +1,16 @@
+@font-face {
+    font-family: 'olde_englishregular';
+    src: url('../resources/oldeenglish-webfont.woff2') format('woff2'),
+    url('../resources/oldeenglish-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+body {
+    font-family: 'olde_englishregular';
+}
+
 .three_column {
     float: left;
     width: 33.333%;

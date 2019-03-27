@@ -9,7 +9,9 @@ class ResourceRouter
         'html' => 'text/html',
         'css' => 'text/css',
         'js' => 'text/javascript',
-        'png' => 'image/png'
+        'png' => 'image/png',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2'
     ];
 
     /**
