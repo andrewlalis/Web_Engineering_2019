@@ -39,8 +39,8 @@ class ResourceRouter
     private function getMimeTypeFromFileExtension($uri) {
         $matches = [];
         $result = preg_match("/\..+/", $uri, $matches);
-        if ($result) {
-            return self::MIME_TYPES[substr($matches[0], -(strlen($matches[0]) - 1))];
+        if ($result && array_key_exists(substr($matches[0], -(strlen($matches[0]) - 1)), static::MIME_TYPES)) {
+            return static::MIME_TYPES[substr($matches[0], -(strlen($matches[0]) - 1))];
         }
         return null;
     }

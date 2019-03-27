@@ -2,10 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style/main_style.css">
     <title>Hello World!</title>
+    <!-- jQuery minified script from a CDN -->
     <script
             src="http://code.jquery.com/jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <!-- Handlebars minified script from a CDN -->
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.1/handlebars.min.js"
+            integrity="sha256-Mki72593zH3nxiQrW1mskmSOAXOep8FVIK0ozKFISyY="
             crossorigin="anonymous"></script>
 </head>
 <body>
@@ -15,13 +22,119 @@
     Here you'll find all the information which is also available via our API.
 </p>
 
+<div class="three_column">
+    <h2>Airports</h2>
+    <div>
+        <label for="airport_page">Page:</label>
+        <input id="airport_page" type="number" min="1" step="1" value="1" />
+
+        <label for="airport_limit">Limit per page:</label>
+        <input id="airport_limit" type="number" min="5" step="5" max="50" value="10" />
+
+        <button id="airport_submit">Go</button>
+    </div>
+    <div id="airports-list">
+    </div>
+</div>
+
+<div class="three_column">
+    <h2>Carriers</h2>
+    <div>
+        <label for="carrier_page">Page:</label>
+        <input id="carrier_page" type="number" min="1" step="1" value="1" />
+
+        <label for="carrier_limit">Limit per page:</label>
+        <input id="carrier_limit" type="number" min="5" step="5" max="50" value="10" />
+
+        <button id="carrier_submit">Go</button>
+    </div>
+    <div id="carriers-list">
+    </div>
+</div>
+
+<div class="three_column">
+    <h2>Statistics</h2>
+    <div>
+        <label for="statistics_page">Page:</label>
+        <input id="statistics_page" type="number" min="1" step="1" value="1" />
+
+        <label for="statistics_limit">Limit per page:</label>
+        <input id="statistics_limit" type="number" min="5" step="5" max="50" value="10" />
+
+        <label for="statistics_year_enabled">Filter by Year:</label>
+        <input id="statistics_year_enabled" type="checkbox" />
+
+        <label for="statistics_year">Year:</label>
+        <input id="statistics_year" type="number" min="1900" max="9999" step="1" value="2008" disabled/>
+
+        <label for="statistics_month_enabled">Filter by Month:</label>
+        <input id="statistics_month_enabled" type="checkbox" />
+
+        <label for="statistics_month">Month:</label>
+        <input id="statistics_month" type="number" min="1" max="12" step="1" value="1" disabled/>
+
+        <label for="statistics_airport_code">Airport code:</label>
+        <select id="statistics_airport_code">
+            <option value="None">None</option>
+        </select>
+
+        <label for="statistics_carrier_code">Carrier code:</label>
+        <select id="statistics_carrier_code">
+            <option value="None">None</option>
+        </select>
+
+        <button id="statistics_submit">Go</button>
+    </div>
+    <div id="statistics_list">
+    </div>
+</div>
+
 </body>
 
 <!-- Handlebars Templates -->
-<script id="template-entity" type="text/x-handlebars-template">
+<script id="airport_entity" type="text/x-handlebars-template">
     <div class="entity">
-        <h3>Code: {{code}}</h3>
-        <h3>Name: {{name}}</h3>
+        <span>{{airport_name}} ({{airport_code}})</span>
+    </div>
+</script>
+
+<script id="carrier_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>{{carrier_name}} ({{carrier_code}})</span>
+    </div>
+</script>
+
+<script id="statistic_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>Airport code: {{airport_code}}</span>
+        <span>Carrier code: {{carrier_code}}</span>
+        <span>Year: {{year}}</span>
+        <span>Month: {{month}}</span>
+        <h3>Flights</h3>
+        <ul>
+            <li>Cancelled: {{flights.cancelled}}</li>
+            <li>Delayed: {{flights.delayed}}</li>
+            <li>Diverted: {{flights.diverted}}</li>
+            <li>On-Time: {{flights.on_time}}</li>
+            <li>Total: {{flights.total}}</li>
+        </ul>
+        <h3>Delays</h3>
+        <ul>
+            <li>Carrier: {{delays.carrier}}</li>
+            <li>Late Aircraft: {{delays.late_aircraft}}</li>
+            <li>National Aviation System: {{delays.national_aviation_system}}</li>
+            <li>Security: {{delays.security}}</li>
+            <li>Weather: {{delays.weather}}</li>
+        </ul>
+        <h3>Minutes Delayed</h3>
+        <ul>
+            <li>Carrier: {{minutes_delayed.carrier}}</li>
+            <li>Late Aircraft: {{minutes_delayed.late_aircraft}}</li>
+            <li>National Aviation System: {{minutes_delayed.national_aviation_system}}</li>
+            <li>Security: {{minutes_delayed.security}}</li>
+            <li>Weather: {{minutes_delayed.weather}}</li>
+            <li>Total: {{minutes_delayed.total}}</li>
+        </ul>
     </div>
 </script>
 

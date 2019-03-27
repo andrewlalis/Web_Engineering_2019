@@ -1,0 +1,12 @@
+.three_column {
+    float: left;
+    width: 33.333%;
+    background-color: lightgray;
+}
+
+.entity {
+    display: block;
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid black;
+}

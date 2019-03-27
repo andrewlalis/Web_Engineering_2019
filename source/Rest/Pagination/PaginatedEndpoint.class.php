@@ -24,6 +24,9 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     /** @var int The absolute maximum amount of resources that can be returned per page. */
     const MAX_LIMIT = 50;
 
+    /** @var int The absolute minimum amount of resources that can be returned per page. */
+    const MIN_LIMIT = 5;
+
     /**
      * Responds to a GET request to this resource. Since this is a paginated endpoint, it takes a page and limit
      * parameter, and also augments the links that a child provides by injecting its own page navigation links.
@@ -40,6 +43,14 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         // Either get the user's defined page, or the default values.
         $page = $args['page'] ?? static::DEFAULT_PAGE;
         $limit = min($args['limit'] ?? static::DEFAULT_LIMIT, static::MAX_LIMIT);
+
+        if (!is_numeric($limit) || $limit < static::MIN_LIMIT) {
+            $limit = static::DEFAULT_LIMIT;
+        }
+
+        if (!is_numeric($page)) {
+            $page = static::DEFAULT_PAGE;
+        }
 
         // Compute offset using some QUICK MATHS.
         $offset = ($page - 1) * $limit;

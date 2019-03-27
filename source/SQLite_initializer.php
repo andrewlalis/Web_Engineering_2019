@@ -4,13 +4,13 @@ $start_time = microtime(true);
 
 function dropOldTables(Sqlite3 $db)
 {
-    echo 'Dropping old tables...' . PHP_EOL;
+    //echo 'Dropping old tables...' . PHP_EOL;
 	$drop_script = "DROP TABLE ";
 	foreach (['airports', 'carriers', 'statistics', 'statistics_flights', 'statistics_delays', 'statistics_minutes_delayed'] as $table_name) {
-	    echo "\tDropping " . $table_name . PHP_EOL;
+	    //echo "\tDropping " . $table_name . PHP_EOL;
 	    $db->query($drop_script . $table_name);
 	}
-	echo 'Done.' . PHP_EOL;
+	//echo 'Done.' . PHP_EOL;
 }
 
 function createTables(Sqlite3 $db)
@@ -71,9 +71,9 @@ CREATE TABLE statistics_minutes_delayed(
   FOREIGN KEY (statistic_id) REFERENCES statistics(id)
 );
 SQL;
-    echo 'Creating tables...' . PHP_EOL;
+    //echo 'Creating tables...' . PHP_EOL;
     $db->exec($tables);
-    echo 'Done.' . PHP_EOL;
+    //echo 'Done.' . PHP_EOL;
 }
 
 ini_set('memory_limit', '-1');
@@ -138,7 +138,7 @@ INSERT INTO statistics_minutes_delayed (statistic_id, late_aircraft, weather, ca
 VALUES (:statistic_id, :minutes_delayed_late_aircraft, :minutes_delayed_weather, :minutes_delayed_carrier, :minutes_delayed_security, :minutes_delayed_total, :minutes_delayed_national_aviation_system);
 ");
 $insert_minutes_delayed_stmt->bindParam(':statistic_id', $statistic_id);
-$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_late_aircraft', $statistic_id);
+$insert_minutes_delayed_stmt->bindParam(':minutes_delayed_late_aircraft', $minutes_delayed_late_aircraft);
 $insert_minutes_delayed_stmt->bindParam(':minutes_delayed_weather', $minutes_delayed_weather);
 $insert_minutes_delayed_stmt->bindParam(':minutes_delayed_carrier', $minutes_delayed_carrier);
 $insert_minutes_delayed_stmt->bindParam(':minutes_delayed_security', $minutes_delayed_carrier);
@@ -147,7 +147,7 @@ $insert_minutes_delayed_stmt->bindParam(':minutes_delayed_national_aviation_syst
 
 $dataset = json_decode(file_get_contents("../dataset/airlines.json"), true);
 
-echo 'Inserting data...' . PHP_EOL;
+//echo 'Inserting data...' . PHP_EOL;
 $count = 0;
 $db->exec("BEGIN;");
 foreach ($dataset as $key => $object) {
@@ -157,7 +157,7 @@ foreach ($dataset as $key => $object) {
     if ($result) {
         $airport_id = $result;
     } else {
-        echo "New airport found: {$airport_code}, {$airport_name}" . PHP_EOL;
+        //echo "New airport found: {$airport_code}, {$airport_name}" . PHP_EOL;
         $insert_airport_stmt->execute();
         $airport_id = $db->lastInsertRowID();
     }
@@ -168,7 +168,7 @@ foreach ($dataset as $key => $object) {
     if ($result) {
         $carrier_id = $result;
     } else {
-        echo "New carrier found: {$carrier_code}, {$carrier_name}" . PHP_EOL;
+        //echo "New carrier found: {$carrier_code}, {$carrier_name}" . PHP_EOL;
         $insert_carrier_stmt->execute();
         $carrier_id = $db->lastInsertRowID();
     }
@@ -227,6 +227,6 @@ foreach ($dataset as $key => $object) {
 }
 $db->exec("COMMIT;");
 $end_time = microtime(true);
-echo 'Done. Processed ' . $count . ' objects. Time: ' . ($end_time - $start_time) . 's' . PHP_EOL;
+//echo 'Done. Processed ' . $count . ' objects. Time: ' . ($end_time - $start_time) . 's' . PHP_EOL;
 
 $db->close();
