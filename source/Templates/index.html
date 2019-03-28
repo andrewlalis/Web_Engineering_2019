@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="style/main_style.css">
-    <title>Hello World!</title>
+    <title>Aviation Data Mine</title>
     <!-- jQuery minified script from a CDN -->
     <script
             src="http://code.jquery.com/jquery-3.3.1.min.js"
@@ -149,7 +149,21 @@
             <div id="weather_results" class="results_container"></div>
         </div>
         <div class="four_column">
-            <h2>2</h2>
+            <h2>Users</h2>
+            <div class="form">
+                <div>
+                    <label for="users_page">Page:</label>
+                    <input id="users_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="users_limit">Limit per page:</label>
+                    <input id="users_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <button id="users_submit">Go</button>
+            </div>
+            <div id="users_results" class="results_container"></div>
         </div>
         <div class="four_column">
             <h2>3</h2>
@@ -236,6 +250,17 @@
             <li>Humidity of {{humidity.percent}}%</li>
             <li>Visibility {{visibility.miles}} miles.</li>
             <li>Flight rules {{flight_category}}</li>
+        </ul>
+    </div>
+</script>
+
+<script id="user_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>User id: {{id}}, address: <code>{{address}}</code></span>
+        <ul>
+            <li>Address: <code>{{address}}</code></li>
+            <li>Total requests: {{request_count}}</li>
+            <li>Most requested endpoint: {{most_requested_endpoint}}</li>
         </ul>
     </div>
 </script>

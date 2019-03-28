@@ -232,10 +232,40 @@ All of the endpoints in this group are unique in that not only do they accept th
 
 All of the endpoints in this group also support the following additional HTTP methods: POST, PATCH, and DELETE. When performing a request with one of these verbs, the four query parameters mentioned above **must** be included in the payload of the request, or it will be rejected.
 
-
-
 ### `/statistics` _Paginated_
-Returns a list of statistics entries in the system.
+Returns a list of statistics entries in the system. In our system, a statistics entry is simply a unique combination of the four filter parameters shown above.
+
+#### GET
+Example request:
+`GET http://DOMAIN/api/statistics?airport_code=ATL&carrier_code=DL&year=2015&month=3`
+
+Example response:
+```
+{
+  "content": [
+    {
+      "airport_code": "ATL",
+      "carrier_code": "DL",
+      "year": 2015,
+      "month": 3,
+      "links": {
+        "self": "http://localhost:8000/api/statistics?airport_code=ATL&carrier_code=DL&year=2015&month=3",
+        "airport": "http://localhost:8000/api/airports/ATL",
+        "carrier": "http://localhost:8000/api/carriers/DL"
+      }
+    }
+  ],
+  "links": {
+    "self": "http://localhost:8000/api/statistics?airport_code=ATL&carrier_code=DL&year=2015&month=3&page=1&limit=10",
+    "first_page": "http://localhost:8000/api/statistics?airport_code=ATL&carrier_code=DL&year=2015&month=3&page=1&limit=10",
+    "last_page": "http://localhost:8000/api/statistics?airport_code=ATL&carrier_code=DL&year=2015&month=3&page=1&limit=10"
+  },
+  "response_time": 0.014006853103638
+}
+```
+
+#### POST
+When posting to this resource, there are some things to keep in mind. You **must** provide all four of the aforementioned parameters, and additionally, if the `airport_code` does not exist yet (not visible in the `/airports` endpoint), you **must** provide an `airport_name` so that the new airport may be registered. The same logic applies to `carrier_code`; for any new code, a `carrier_name` must be supplied. Failure to do any of these things will return a 400 error.
 
 ### `/statistics/flights` _Paginated_
 
