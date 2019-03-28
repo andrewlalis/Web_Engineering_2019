@@ -14,6 +14,7 @@ $(document).ready(function () {
     $('#carrier_submit').click(loadCarriers);
     $('#statistics_submit').click(loadStatistics);
     $('#aggregate_statistics_submit').click(loadAggregateStatistics);
+    $('#weather_submit').click(loadWeather);
 
     // Add listeners for when the user enables/disables year and month selection.
     $('#statistics_year_enabled').change(toggleYearEnabled);
@@ -196,6 +197,30 @@ function loadAggregateStatistics() {
             let results_container = $('#aggregate_statistics_results');
             results_container.empty();
             results_container.append(template(data['content']));
+        });
+}
+
+/**
+ * Loads weather data from checkwx.com
+ */
+function loadWeather() {
+    let airport_code = $('#weather_airport_code').val();
+    $.ajax({
+        type: 'GET',
+        url: 'https://api.checkwx.com/metar/K' + airport_code + '/decoded',
+        headers: {'X-API-Key': 'dadd39c8bc253acd9d72c05d28'},
+        dataType: 'json'
+    })
+        .done(function (data) {
+            if (data['results'] !== 1) {
+                return;
+            }
+
+            let template_source = $('#weather_entity').html();
+            let template = Handlebars.compile(template_source);
+            let results_container = $('#weather_results');
+            results_container.empty();
+            results_container.append(template(data['data'][0]))
         });
 }
 

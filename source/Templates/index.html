@@ -134,7 +134,16 @@
     </div>
     <div class="content_row">
         <div class="four_column">
-            <h2>1</h2>
+            <h2>METAR Airport Weather Data</h2>
+            <div class="form">
+                <div>
+                    <label for="weather_airport_code">Airport code:</label>
+                    <select id="weather_airport_code" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <button id="weather_submit">Go</button>
+            </div>
+            <div id="weather_results" class="results_container"></div>
         </div>
         <div class="four_column">
             <h2>2</h2>
@@ -210,6 +219,20 @@
             <li>Average: {{late_aircraft.average}}</li>
             <li>Standard Deviation: {{late_aircraft.standard_deviation}}</li>
             <li>Median: {{late_aircraft.median}}</li>
+        </ul>
+    </div>
+</script>
+
+<script id="weather_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <h3>Weather data for {{station.name}} (ICAO: {{icao}})</h3>
+        <ul>
+            <li>Wind speeds of {{wind.speed_kts}} knots at {{wind.degrees}} degrees.</li>
+            <li>Temperature of {{temperature.celsius}} degrees C.</li>
+            <li>Dewpoint of {{dewpoint.celsius}} degrees C.</li>
+            <li>Humidity of {{humidity.percent}}%</li>
+            <li>Visibility {{visibility.miles}} miles.</li>
+            <li>Flight rules {{flight_category}}</li>
         </ul>
     </div>
 </script>
