@@ -18,7 +18,7 @@
 <body>
 
 <div class="header">
-    <h1 class="marquee">AndyFramework Aviation Data Mine</h1>
+    <h1 class="marquee">卍 ✈ ✈ ✈ AndyFramework Aviation Data Mine ✈ ✈ ✈ 卍</h1>
     <p>
         Here you'll find all the information which is also available via our API.
     </p>
@@ -196,30 +196,58 @@
         <span>Year: {{year}}</span>
         <span>Month: {{month}}</span>
         <h3>Flights</h3>
-        <ul>
-            <li>Cancelled: {{flights.cancelled}}</li>
-            <li>Delayed: {{flights.delayed}}</li>
-            <li>Diverted: {{flights.diverted}}</li>
-            <li>On-Time: {{flights.on_time}}</li>
-            <li>Total: {{flights.total}}</li>
-        </ul>
+        <table>
+            <tr>
+                <th>Cancelled</th>
+                <th>Delayed</th>
+                <th>Diverted</th>
+                <th>On-Time</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td>{{flights.cancelled}}</td>
+                <td>{{flights.delayed}}</td>
+                <td>{{flights.diverted}}</td>
+                <td>{{flights.on_time}}</td>
+                <td>{{flights.total}}</td>
+            </tr>
+        </table>
         <h3>Delays</h3>
-        <ul>
-            <li>Carrier: {{delays.carrier}}</li>
-            <li>Late Aircraft: {{delays.late_aircraft}}</li>
-            <li>National Aviation System: {{delays.national_aviation_system}}</li>
-            <li>Security: {{delays.security}}</li>
-            <li>Weather: {{delays.weather}}</li>
-        </ul>
+        <table>
+            <tr>
+                <th>Carrier</th>
+                <th>Late Aircraft</th>
+                <th>National Aviation System</th>
+                <th>Security</th>
+                <th>Weather</th>
+            </tr>
+            <tr>
+                <td>{{delays.carrier}}</td>
+                <td>{{delays.late_aircraft}}</td>
+                <td>{{delays.national_aviation_system}}</td>
+                <td>{{delays.security}}</td>
+                <td>{{delays.weather}}</td>
+            </tr>
+        </table>
         <h3>Minutes Delayed</h3>
-        <ul>
-            <li>Carrier: {{minutes_delayed.carrier}}</li>
-            <li>Late Aircraft: {{minutes_delayed.late_aircraft}}</li>
-            <li>National Aviation System: {{minutes_delayed.national_aviation_system}}</li>
-            <li>Security: {{minutes_delayed.security}}</li>
-            <li>Weather: {{minutes_delayed.weather}}</li>
-            <li>Total: {{minutes_delayed.total}}</li>
-        </ul>
+        <table>
+            <tr>
+                <th>Carrier</th>
+                <th>Late Aircraft</th>
+                <th>National Aviation System</th>
+                <th>Security</th>
+                <th>Weather</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td>{{minutes_delayed.carrier}}</td>
+                <td>{{minutes_delayed.late_aircraft}}</td>
+                <td>{{minutes_delayed.national_aviation_system}}</td>
+                <td>{{minutes_delayed.security}}</td>
+                <td>{{minutes_delayed.weather}}</td>
+                <td>{{minutes_delayed.total}}</td>
+            </tr>
+        </table>
     </div>
 </script>
 
