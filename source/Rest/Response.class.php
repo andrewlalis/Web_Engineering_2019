@@ -16,7 +16,7 @@ class Response
     /** @var array */
     private $links;
 
-    public function __construct(int $code, array $payload, array $links)
+    public function __construct(int $code, array $payload, array $links = [])
     {
         $this->code = $code;
         $this->payload = $payload;

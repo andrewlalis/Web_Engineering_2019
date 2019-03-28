@@ -1,0 +1,97 @@
+@font-face {
+    font-family: 'olde_englishregular';
+    src: url('../resources/oldeenglish-webfont.woff2') format('woff2'),
+    url('../resources/oldeenglish-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+html, body {
+    /* font-family: 'olde_englishregular'; */
+
+    width: 100%;
+    height: 100%;
+
+    padding: 0;
+    margin: 0;
+    background-color: azure;
+}
+
+.header {
+    height: 20%;
+    max-height: 20%;
+}
+
+.marquee {
+    width: 100%;
+    padding-left: 100%;
+    animation: marquee 20s linear infinite, rainbow_text 10s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+@keyframes rainbow_text {
+    0% { color: red; }
+    10% { color: orangered; }
+    20% { color: orange; }
+    30% { color: yellow; }
+    40% { color: yellowgreen; }
+    50% { color: green; }
+    60% { color: mediumseagreen; }
+    70% { color: blue; }
+    80% { color: blueviolet; }
+    90% { color: violet; }
+    100% {color: red; }
+}
+
+.main_content {
+    height: 80%;
+    max-height: 80%;
+    width: 100%;
+}
+
+.content_row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.four_column {
+    margin: 0;
+    padding: 10px;
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    background-color: lightgray;
+    border: 1px solid blue;
+}
+
+.four_column h2 {
+    animation: rainbow_text 10s linear infinite;
+}
+
+.form {
+    flex-grow: 0;
+}
+
+.results_container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 500px;
+    overflow-y: auto;
+    font-size: small;
+}
+
+.entity {
+    display: block;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid black;
+}

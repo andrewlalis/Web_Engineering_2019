@@ -1,17 +1,21 @@
 <?php
 
-namespace Rest\Andypoints\Carriers;
-
+namespace Rest\Andypoints;
 
 use Rest\AndypointTypes\GetRequest;
 use Rest\Endpoint;
 use Rest\Response;
 
-class Carrier extends Endpoint implements GetRequest
+/**
+ * A convenience endpoint which returns a list of all available airport codes.
+ */
+class AirportCodes extends Endpoint implements GetRequest
 {
+    const LOCATION = '/airport_codes';
+
     public function __construct()
     {
-        parent::__construct('/carriers/{code}');
+        parent::__construct(static::LOCATION);
     }
 
     /**
@@ -26,20 +30,7 @@ class Carrier extends Endpoint implements GetRequest
      */
     public function get(array $path_args, array $args): Response
     {
-        $code = filter_var($path_args['code'], FILTER_SANITIZE_STRING);
-
-        $statement = $this->getDb()->prepare("SELECT * FROM carriers WHERE carrier_code = :carrier_code;");
-        $statement->bindValue(':carrier_code', $code);
-        $result = $statement->execute();
-        $row = $result->fetchArray(SQLITE3_ASSOC);
-        if ($row === false) {
-            $row = [];
-        }
-
-        return new Response(
-            200,
-            $row,
-            []
-        );
+        $result = $this->fetchCollection("SELECT airport_code FROM airports;");
+        return new Response(200, $result);
     }
 }
