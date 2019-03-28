@@ -23,6 +23,31 @@ html, body {
     max-height: 20%;
 }
 
+.marquee {
+    width: 100%;
+    padding-left: 100%;
+    animation: marquee 20s linear infinite, rainbow_text 10s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+@keyframes rainbow_text {
+    0% { color: red; }
+    10% { color: orangered; }
+    20% { color: orange; }
+    30% { color: yellow; }
+    40% { color: yellowgreen; }
+    50% { color: green; }
+    60% { color: mediumseagreen; }
+    70% { color: blue; }
+    80% { color: blueviolet; }
+    90% { color: violet; }
+    100% {color: red; }
+}
+
 .main_content {
     height: 80%;
     max-height: 80%;
@@ -46,6 +71,10 @@ html, body {
     align-items: stretch;
     background-color: lightgray;
     border: 1px solid blue;
+}
+
+.four_column h2 {
+    animation: rainbow_text 10s linear infinite;
 }
 
 .form {
