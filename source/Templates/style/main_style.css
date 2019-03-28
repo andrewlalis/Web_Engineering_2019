@@ -69,7 +69,7 @@ html, body {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
-    animation: background_pulse 3s linear infinite, foreground_pulse 3s linear infinite;
+    /*animation: background_pulse 3s linear infinite, foreground_pulse 3s linear infinite;*/
     border: 1px solid blue;
 }
 
