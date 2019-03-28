@@ -17,86 +17,135 @@
 </head>
 <body>
 
-<h1>Home Page</h1>
-<p>
-    Here you'll find all the information which is also available via our API.
-</p>
-
-<div class="four_column">
-    <h2>Airports</h2>
-    <div>
-        <label for="airport_page">Page:</label>
-        <input id="airport_page" type="number" min="1" step="1" value="1" />
-
-        <label for="airport_limit">Limit per page:</label>
-        <input id="airport_limit" type="number" min="5" step="5" max="50" value="10" />
-
-        <button id="airport_submit">Go</button>
-    </div>
-    <div id="airports_results" class="results_container"></div>
+<div class="header">
+    <h1>Home Page</h1>
+    <p>
+        Here you'll find all the information which is also available via our API.
+    </p>
 </div>
 
-<div class="four_column">
-    <h2>Carriers</h2>
-    <div>
-        <label for="carrier_page">Page:</label>
-        <input id="carrier_page" type="number" min="1" step="1" value="1" />
+<div class="main_content">
+    <div class="content_row">
+        <div class="four_column">
+            <h2>Airports</h2>
+            <div class="form">
+                <div>
+                    <label for="airport_page">Page:</label>
+                    <input id="airport_page" type="number" min="1" step="1" value="1" />
+                </div>
 
-        <label for="carrier_limit">Limit per page:</label>
-        <input id="carrier_limit" type="number" min="5" step="5" max="50" value="10" />
+                <div>
+                    <label for="airport_limit">Limit per page:</label>
+                    <input id="airport_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
 
-        <button id="carrier_submit">Go</button>
+                <button id="airport_submit">Go</button>
+            </div>
+            <div id="airports_results" class="results_container"></div>
+        </div>
+        <div class="four_column">
+            <h2>Carriers</h2>
+            <div class="form">
+                <div>
+                    <label for="carrier_page">Page:</label>
+                    <input id="carrier_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="carrier_limit">Limit per page:</label>
+                    <input id="carrier_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <button id="carrier_submit">Go</button>
+            </div>
+            <div id="carriers_results" class="results_container"></div>
+        </div>
+
+        <div class="four_column">
+            <h2>Statistics</h2>
+            <div class="form">
+                <div>
+                    <label for="statistics_page">Page:</label>
+                    <input id="statistics_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="statistics_limit">Limit per page:</label>
+                    <input id="statistics_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <div>
+                    <label for="statistics_year_enabled">Filter by Year:</label>
+                    <input id="statistics_year_enabled" type="checkbox" />
+                </div>
+
+                <div>
+                    <label for="statistics_year">Year:</label>
+                    <input id="statistics_year" type="number" min="1900" max="9999" step="1" value="2008" disabled/>
+                </div>
+
+                <div>
+                    <label for="statistics_month_enabled">Filter by Month:</label>
+                    <input id="statistics_month_enabled" type="checkbox" />
+                </div>
+
+                <div>
+                    <label for="statistics_month">Month:</label>
+                    <input id="statistics_month" type="number" min="1" max="12" step="1" value="1" disabled/>
+                </div>
+
+                <div>
+                    <label for="statistics_airport_code">Airport code:</label>
+                    <select id="statistics_airport_code" class="airport_code_selector" data-optional="true"></select>
+                </div>
+
+                <div>
+                    <label for="statistics_carrier_code">Carrier code:</label>
+                    <select id="statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
+                </div>
+
+                <button id="statistics_submit">Go</button>
+            </div>
+            <div id="statistics_results" class="results_container"></div>
+        </div>
+
+        <div class="four_column">
+            <h2>Aggregate Carrier Delay Statistics</h2>
+            <div class="form">
+                <div>
+                    <label for="aggregate_statistics_airport_code_1">Airport code 1:</label>
+                    <select id="aggregate_statistics_airport_code_1" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <div>
+                    <label for="aggregate_statistics_airport_code_2">Airport code 2:</label>
+                    <select id="aggregate_statistics_airport_code_2" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <div>
+                    <label for="aggregate_statistics_carrier_code">Carrier code:</label>
+                    <select id="aggregate_statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
+                </div>
+
+                <button id="aggregate_statistics_submit">Go</button>
+            </div>
+            <div id="aggregate_statistics_results" class="results_container"></div>
+        </div>
     </div>
-    <div id="carriers_results" class="results_container"></div>
-</div>
-
-<div class="four_column">
-    <h2>Statistics</h2>
-    <div>
-        <label for="statistics_page">Page:</label>
-        <input id="statistics_page" type="number" min="1" step="1" value="1" />
-
-        <label for="statistics_limit">Limit per page:</label>
-        <input id="statistics_limit" type="number" min="5" step="5" max="50" value="10" />
-
-        <label for="statistics_year_enabled">Filter by Year:</label>
-        <input id="statistics_year_enabled" type="checkbox" />
-
-        <label for="statistics_year">Year:</label>
-        <input id="statistics_year" type="number" min="1900" max="9999" step="1" value="2008" disabled/>
-
-        <label for="statistics_month_enabled">Filter by Month:</label>
-        <input id="statistics_month_enabled" type="checkbox" />
-
-        <label for="statistics_month">Month:</label>
-        <input id="statistics_month" type="number" min="1" max="12" step="1" value="1" disabled/>
-
-        <label for="statistics_airport_code">Airport code:</label>
-        <select id="statistics_airport_code" class="airport_code_selector" data-optional="true"></select>
-
-        <label for="statistics_carrier_code">Carrier code:</label>
-        <select id="statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
-
-        <button id="statistics_submit">Go</button>
+    <div class="content_row">
+        <div class="four_column">
+            <h2>1</h2>
+        </div>
+        <div class="four_column">
+            <h2>2</h2>
+        </div>
+        <div class="four_column">
+            <h2>3</h2>
+        </div>
+        <div class="four_column">
+            <h2>4</h2>
+        </div>
     </div>
-    <div id="statistics_results" class="results_container"></div>
-</div>
-
-<div class="four_column">
-    <h2>Aggregate Carrier Delay Statistics</h2>
-    <div>
-        <label for="aggregate_statistics_airport_code_1">Airport code 1:</label>
-        <select id="aggregate_statistics_airport_code_1" class="airport_code_selector" data-optional="false"></select>
-
-        <label for="aggregate_statistics_airport_code_2">Airport code 2:</label>
-        <select id="aggregate_statistics_airport_code_2" class="airport_code_selector" data-optional="false"></select>
-
-        <label for="aggregate_statistics_carrier_code">Carrier code:</label>
-        <select id="aggregate_statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
-
-        <button id="aggregate_statistics_submit">Go</button>
-    </div>
-    <div id="aggregate_statistics_results" class="results_container"></div>
 </div>
 
 </body>
