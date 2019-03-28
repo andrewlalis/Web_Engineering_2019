@@ -267,13 +267,307 @@ Example response:
 #### POST
 When posting to this resource, there are some things to keep in mind. You **must** provide all four of the aforementioned parameters, and additionally, if the `airport_code` does not exist yet (not visible in the `/airports` endpoint), you **must** provide an `airport_name` so that the new airport may be registered. The same logic applies to `carrier_code`; for any new code, a `carrier_name` must be supplied. Failure to do any of these things will return a 400 error.
 
+Furthermore, if the statistic entry identified by the four posted parameters already exists, the code 409 will be returned.
+
+Example request:
+`POST http://DOMAIN/api/statistics Content-Type: application/x-www-form-urlencoded -data airport_code=TPA&carrier_code=DL&year=2019&month=3`
+
+Example response:
+```
+{
+  "content": {
+    "message": "Resource created.",
+    "id": 54014
+  },
+  "links": {
+    "self": "http://localhost:8000/api/statistics"
+  },
+  "response_time": 0.30321097373962
+}
+```
+
+#### PATCH
+It is not possible to patch a statistical record, and attempting to do so will return the following result:
+```
+{
+  "content": {
+    "error_message": "You may not patch a statistical record, only a subset of the record.",
+    "context": []
+  },
+  "links": {
+    "0": "http://localhost:8000/api/statistics/flights",
+    "1": "http://localhost:8000/api/statistics/delays",
+    "2": "http://localhost:8000/api/statistics/minutes_delayed",
+    "self": "http://localhost:8000/api/statistics"
+  },
+  "response_time": 0.21814179420471
+}
+```
+
+Nevertheless, it is important to discuss this request type as it is handled for the three child requests in identical fashion. Each of the three child endpoints, `flights`, `delays`, and `minutes_delayed`, use the same syntax. The following rules apply when PATCHing these resources.
+
+* All of the four identifying parameters **must** be present.
+* Any of the statistical values shown in the sample GET responses may be patched by sending `that_variable_name=new_value`.
+
+A sample request for the `flights` child endpoint is shown below as an example which will apply to all three child endpoints.
+
+Example request:
+`PATCH http://DOMAIN/api/statistics/flights Content-Type: application/x-www-form-urlencoded -data airport_code=TPA&carrier_code=DL&year=2012&month=12&total=0`
+_Notice that the purpose of this request is to update the `total` variable to `0`._
+
+Example response:
+```
+{
+  "content": {
+    "message": "Statistics patched successfully."
+  },
+  "links": {
+    "self": "http://localhost:8000/api/statistics/flights"
+  },
+  "response_time": 0.27288389205933
+}
+```
+
+#### DELETE
+Delete requests are relatively simple. All this endpoint, as well as all three child endpoints implement them. To delete a resource, simply send the request and include all four of the identifying parameters. _Note that when the main `/statistics` entry is deleted, all child resources (`flights`, `delays`, `minutes_delayed`) are also deleted._
+
+Example request:
+`DELETE http://DOMAIN/api/statistics/flights Content-Type: application/x-www-form-urlencoded -data airport_code=TPA&carrier_code=DL&year=2012&month=12`
+
+For delete requests, there is no data response if successful, only a `204 No Content` response code. If an error does occur, that information will be clearly provided.
+
 ### `/statistics/flights` _Paginated_
+Returns a list of statistics about categorized numbers of flights.
+
+#### GET
+Example request:
+`GET http://DOMAIN/api/statistics/flights?airport_code=TPA&carrier_code=DL&year=2012&month=12`
+
+Example response:
+```
+{
+  "content": [{
+    "airport_code": "TPA",
+    "carrier_code": "DL",
+    "year": 2012,
+    "month": 12,
+    "cancelled": 1,
+    "on_time": 749,
+    "delayed": 136,
+    "diverted": 4,
+    "total": 890,
+    "links": {
+      "self": "http://localhost:8000/api/statistics/flights?airport_code=TPA&carrier_code=DL&year=2012&month=12",
+      "airport": "http://localhost:8000/api/airports/TPA",
+      "carrier": "http://localhost:8000/api/carriers/DL"
+    }
+  }],
+  "links": {
+    "self": "http://localhost:8000/api/statistics/flights?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "first_page": "http://localhost:8000/api/statistics/flights?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "last_page": "http://localhost:8000/api/statistics/flights?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10"
+  },
+  "response_time": 0.23796105384827
+}
+```
+
+_POST, PATCH, and DELETE requests are covered in the `/statistics` endpoint._
 
 ### `/statistics/delays` _Paginated_
+Returns a list of statistics about categorized numbers of delays.
+
+#### GET
+Example request:
+`GET http://DOMAIN/api/statistics/delays?airport_code=TPA&carrier_code=DL&year=2012&month=12`
+
+Example response:
+```
+{
+  "content": [{
+    "airport_code": "TPA",
+    "carrier_code": "DL",
+    "year": 2012,
+    "month": 12,
+    "late_aircraft": 34,
+    "weather": 3,
+    "security": 0,
+    "national_aviation_system": 50,
+    "carrier": 48,
+    "links": {
+      "self": "http://localhost:8000/api/statistics/delays?airport_code=TPA&carrier_code=DL&year=2012&month=12",
+      "airport": "http://localhost:8000/api/airports/TPA",
+      "carrier": "http://localhost:8000/api/carriers/DL"
+    }
+  }],
+  "links": {
+    "self": "http://localhost:8000/api/statistics/delays?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "first_page": "http://localhost:8000/api/statistics/delays?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "last_page": "http://localhost:8000/api/statistics/delays?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10"
+  },
+  "response_time": 0.24684500694275
+}
+```
+
+_POST, PATCH, and DELETE requests are covered in the `/statistics` endpoint._
 
 ### `/statistics/minutes_delayed` _Paginated_
+Returns a list of statistics about the number of minutes of delay.
+
+#### GET
+Example request:
+`GET http://DOMAIN/api/statistics/minutes_delayed?airport_code=TPA&carrier_code=DL&year=2012&month=12`
+
+Example response:
+```
+{
+  "content": [{
+    "airport_code": "TPA",
+    "carrier_code": "DL",
+    "year": 2012,
+    "month": 12,
+    "late_aircraft": 1727,
+    "weather": 483,
+    "carrier": 3079,
+    "security": 3079,
+    "total": 6980,
+    "national_aviation_system": 1691,
+    "links": {
+      "self": "http://localhost:8000/api/statistics/minutes_delayed?airport_code=TPA&carrier_code=DL&year=2012&month=12",
+      "airport": "http://localhost:8000/api/airports/TPA",
+      "carrier": "http://localhost:8000/api/carriers/DL"
+    }
+  }],
+  "links": {
+    "self": "http://localhost:8000/api/statistics/minutes_delayed?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "first_page": "http://localhost:8000/api/statistics/minutes_delayed?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10",
+    "last_page": "http://localhost:8000/api/statistics/minutes_delayed?airport_code=TPA&carrier_code=DL&year=2012&month=12&page=1&limit=10"
+  },
+  "response_time": 0.24147820472717
+}
+```
+
+_POST, PATCH, and DELETE requests are covered in the `/statistics` endpoint._
+
 
 ## Miscellaneous
 This grouping contains any endpoints which do not fit neatly into any of the three previous groups.
 
 ### `/aggregate_carrier_statistics/{airport_1_code}/{airport_2_code}`
+Returns aggregate data for all statistical entries shared by the two specified airports, and can optionally be filtered by a `carrier_code`.
+
+Example request:
+`GET http://DOMAIN/api/aggregate_carrier_statistics/TPA/ATL?carrier_code=DL`
+
+Example response:
+```
+{
+  "content": {
+    "carrier": {
+      "average": 318.85855263158,
+      "standard_deviation": 292.87110061728,
+      "median": 181.5
+    },
+    "late_aircraft": {
+      "average": 409.83881578947,
+      "standard_deviation": 410.34275740455,
+      "median": 199.5
+    }
+  },
+  "links": {
+    "self": "http://localhost:8000/api/aggregate_carrier_statistics/TPA/ATL?carrier_code=DL"
+  },
+  "response_time": 0.18251299858093
+}
+```
+
+### `/users` _Paginated_
+Returns a list of all users who have requested information from the API, with some basic aggregate statistics per user to give a quick snapshot of the user's actions.
+
+Example request:
+`GET http://DOMAIN/api/users`
+
+Example response:
+```
+{
+  "content": [
+    {
+      "id": 1,
+      "address": "127.0.0.1",
+      "request_count": 86,
+      "most_requested_endpoint": "/users",
+      "links": {
+        "self": "http://localhost:8000/api/users/1"
+      }
+    }
+  ],
+  "links": {
+    "self": "http://localhost:8000/api/users?page=1&limit=10",
+    "first_page": "http://localhost:8000/api/users?page=1&limit=10",
+    "last_page": "http://localhost:8000/api/users?page=1&limit=10"
+  },
+  "response_time": 0.14764595031738
+}
+```
+
+### `/users/{id}`
+Returns the information about a single user, identified by the provided `id`. This endpoint does not really add any value, but exists merely for the completeness of the API as a whole.
+
+Example request:
+`GET http://DOMAIN/api/users/1`
+
+Example response:
+```
+{
+  "content": {
+    "id": 1,
+    "address": "127.0.0.1"
+  },
+  "links": {
+    "requests": "http://localhost:8000/api/users/1/requests",
+    "self": "http://localhost:8000/api/users/1"
+  },
+  "response_time": 0.17720103263855
+}
+```
+
+### `/users/{id}/requests` _Paginated_
+Returns a list of all requests a user specified by the provided `id` parameter has ever made.
+
+Example request:
+`GET http://DOMAIN/api/users/1/requests`
+
+Example response (_Note that the response is cut short by `...` for brevity_):
+```
+{
+  "content": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "occurred_at": "2019-03-28 18:32:54",
+      "endpoint_uri": "/airport_codes",
+      "request_type": 1,
+      "links": {
+        "self": "http://localhost:8000/api/users/1/requests?"
+      }
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "occurred_at": "2019-03-28 18:32:54",
+      "endpoint_uri": "/carrier_codes",
+      "request_type": 1,
+      "links": {
+        "self": "http://localhost:8000/api/users/1/requests?"
+      }
+    },
+    ...
+  ],
+  "links": {
+    "self": "http://localhost:8000/api/users/1/requests?page=1&limit=10",
+    "first_page": "http://localhost:8000/api/users/1/requests?page=1&limit=10",
+    "last_page": "http://localhost:8000/api/users/1/requests?page=9&limit=10",
+    "next_page": "http://localhost:8000/api/users/1/requests?page=2&limit=10"
+  },
+  "response_time": 0.13511109352112
+}
+```
