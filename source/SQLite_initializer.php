@@ -70,6 +70,22 @@ CREATE TABLE statistics_minutes_delayed(
   national_aviation_system INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (statistic_id) REFERENCES statistics(id)
 );
+
+CREATE TABLE users(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  address TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE user_requests(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  occurred_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  endpoint_uri TEXT NOT NULL,
+  request_type INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+                          ON UPDATE CASCADE 
+                          ON DELETE CASCADE
+);
 SQL;
     //echo 'Creating tables...' . PHP_EOL;
     $db->exec($tables);

@@ -3,6 +3,7 @@
 namespace Rest;
 
 use Rest\AndypointTypes\RequestType;
+use SQLite3;
 use Utils\CSVConverter;
 
 /**
@@ -29,8 +30,9 @@ class Router
      * @param string $uri The URI requested by the client.
      * @param string $request_type The request type (GET, POST, PATCH, etc.)
      * @param array $headers The headers the client has given.
+	 * @param string $user_address The address that the client connected from.
      */
-    public function respond(string $uri, string $request_type, array $headers)
+    public function respond(string $uri, string $request_type, array $headers, string $user_address)
     {
         $start_time = microtime(true);
         $endpoint = $this->getMatchingEndpointForURI($uri);
@@ -38,11 +40,13 @@ class Router
         if ($endpoint === null) {
             $response = $this->endpointNotFound();
         } else {
+        	$request_type_int = RequestType::getType($request_type);
             $response = $endpoint->getResponse(
-                RequestType::getType($request_type),
+                $request_type_int,
                 $this->extractURIParameters($uri, $endpoint->getUri()),
                 $uri
             );
+			$this->logUserRequest($user_address, $endpoint->getUri(), $request_type_int);
         }
 
         // This is an easy place to insert a link back to oneself.
@@ -207,4 +211,30 @@ class Router
         }
         return $vars;
     }
+
+	/**
+	 * Logs this user's request to the API.
+	 *
+	 * @param string $user_address The address of the user, as indicated by the remote address value
+	 * found in the SERVER super global.
+	 * @param string $endpoint_uri The URI which was requested.
+	 * @param int $request_type The type of request.
+	 */
+    private function logUserRequest(string $user_address, string $endpoint_uri, int $request_type)
+	{
+		$db = new SQLite3(DB_NAME);
+		$insert_stmt = $db->prepare("INSERT OR IGNORE INTO users (address) VALUES (:user_address);");
+		$insert_stmt->bindValue(':user_address', $user_address);
+		$result = $insert_stmt->execute();
+		// Quit if an error occurred.
+		if (!$result) {
+			return;
+		}
+		$user_id = $db->querySingle("SELECT id FROM users WHERE address = '" . $user_address . "';");
+		$insert_data_stmt = $db->prepare("INSERT INTO user_requests (user_id, endpoint_uri, request_type) VALUES (:uid, :e_uri, :rt);");
+		$insert_data_stmt->bindValue(':uid', $user_id);
+		$insert_data_stmt->bindValue(':e_uri', $endpoint_uri);
+		$insert_data_stmt->bindValue(':rt', $request_type);
+		$insert_data_stmt->execute();
+	}
 }

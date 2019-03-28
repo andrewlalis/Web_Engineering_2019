@@ -23,8 +23,6 @@ if (!file_exists(DB_NAME)) {
     require_once 'SQLite_initializer.php';
 }
 
-
-
 // If this is an API call, then use the rest router.
 if (substr($_SERVER['REQUEST_URI'], 0, strlen(API_NAME)) === API_NAME) {
     // Delegate functionality to the router.
@@ -48,8 +46,12 @@ if (substr($_SERVER['REQUEST_URI'], 0, strlen(API_NAME)) === API_NAME) {
 
     $rest_router->registerEndpoint(new Andypoints\AggregateCarrierStatistics());
 
+    $rest_router->registerEndpoint(new Andypoints\Users());
+    $rest_router->registerEndpoint(new Andypoints\Users\User());
+    $rest_router->registerEndpoint(new Andypoints\Users\Requests());
+
     // Process the current request.
-    $rest_router->respond(substr($_SERVER['REQUEST_URI'], strlen(API_NAME)), $_SERVER['REQUEST_METHOD'], getallheaders());
+    $rest_router->respond(substr($_SERVER['REQUEST_URI'], strlen(API_NAME)), $_SERVER['REQUEST_METHOD'], getallheaders(), $_SERVER['REMOTE_ADDR']);
 } else {
     // Process a call which will return some HTML or other resources.
     $resource_router = new ResourceRouter();
