@@ -31,7 +31,6 @@ class Statistics extends PaginatedEndpoint implements PostRequest, PatchRequest,
     protected function getResponseColumnNames(): array
     {
         return [
-            'statistics.id',
             'airports.airport_code',
             'carriers.carrier_code',
             'statistics.time_year AS year',
@@ -154,6 +153,55 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
      */
     public function post(array $path_args, array $data): Response
     {
+        // Before inserting the statistic, both the airport and carrier must be confirmed to exist.
+        $result = $this->getDb()->querySingle("SELECT id FROM airports WHERE airport_code = '" . $data['airport_code'] . "';");
+        if ($result) {
+            $airport_id = $result;
+        } else {
+            if (!isset($data['airport_name']) || empty($data['airport_name'])) {
+                return new ErrorResponse(
+                    400,
+                    'New airport_code submitted, but no airport_name is provided.'
+                );
+            }
+            $this->insertIntoCollection(
+                'airports',
+                [
+                    'airport_code' => ':airport_code',
+                    'airport_name' => ':airport_name'
+                ],
+                [
+                    ':airport_code' => $data['airport_code'],
+                    ':airport_name' => $data['airport_name']
+                ]
+            );
+            $airport_id = $this->getDb()->lastInsertRowID();
+        }
+
+        $result = $this->getDb()->querySingle("SELECT id FROM carriers WHERE carrier_code = '" . $data['carrier_code'] . "';");
+        if ($result) {
+            $carrier_id = $result;
+        } else {
+            if (!isset($data['carrier_name']) || empty($data['airport_name'])){
+                return new ErrorResponse(
+                    400,
+                    'New carrier_code submitted, but no carrier_name is provided.'
+                );
+            }
+            $this->insertIntoCollection(
+                'carriers',
+                [
+                    'carrier_code' => ':carrier_code',
+                    'carrier_name' => ':carrier_name'
+                ],
+                [
+                    ':carrier_code' => $data['carrier_code'],
+                    ':carrier_name' => $data['carrier_name']
+                ]
+            );
+            $carrier_id = $this->getDb()->lastInsertRowID();
+        }
+
         // First check if this resource already exists.
        $exists = $this->statisticExists($data['airport_code'], $data['carrier_code'], $data['year'], $data['month']);
         if ($exists) {
@@ -167,15 +215,15 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
         $success = $this->insertIntoCollection(
             'statistics',
             [
-                'airport_id' => '(SELECT id FROM airports WHERE airport_code = :airport_code)',
-                'carrier_id' => '(SELECT id FROM carriers WHERE carrier_code = :carrier_code)',
+                'airport_id' => ':airport_id',
+                'carrier_id' => ':carrier_id',
                 'time_label' => ':time_label',
                 'time_year' => ':time_year',
                 'time_month' => ':time_month'
             ],
             [
-                ':airport_code' => $data['airport_code'],
-                ':carrier_code' => $data['carrier_code'],
+                ':airport_id' => $airport_id,
+                ':carrier_id' => $carrier_id,
                 ':time_label' => $time_label,
                 ':time_year' => $data['year'],
                 ':time_month' => $data['month']

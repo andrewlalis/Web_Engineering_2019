@@ -153,7 +153,7 @@ $db->exec("BEGIN;");
 foreach ($dataset as $key => $object) {
     $airport_code = $object['airport']['code'];
     $airport_name = $object['airport']['name'];
-    $result = $db->querySingle("SELECT * FROM airports WHERE airport_code = '" . $airport_code . "';");
+    $result = $db->querySingle("SELECT id FROM airports WHERE airport_code = '" . $airport_code . "';");
     if ($result) {
         $airport_id = $result;
     } else {
@@ -164,7 +164,7 @@ foreach ($dataset as $key => $object) {
 
     $carrier_code = $object['carrier']['code'];
     $carrier_name = $object['carrier']['name'];
-    $result = $db->querySingle("SELECT * FROM carriers WHERE carrier_code = '" . $carrier_code . "';");
+    $result = $db->querySingle("SELECT id FROM carriers WHERE carrier_code = '" . $carrier_code . "';");
     if ($result) {
         $carrier_id = $result;
     } else {
