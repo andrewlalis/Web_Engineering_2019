@@ -424,6 +424,10 @@ WHERE airport_id = (SELECT id FROM airports WHERE airport_code = :airport_code) 
         $set_values = [
             ':statistic_id' => $statistic_id
         ];
+        unset($data['airport_code']);
+        unset($data['carrier_code']);
+        unset($data['year']);
+        unset($data['month']);
         foreach ($data as $key => $value) {
             $set_statements[] = $key . ' = :' . $key;
             $set_values[':' . $key] = $value;

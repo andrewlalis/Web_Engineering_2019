@@ -11,7 +11,8 @@ class ResourceRouter
         'js' => 'text/javascript',
         'png' => 'image/png',
         'woff' => 'font/woff',
-        'woff2' => 'font/woff2'
+        'woff2' => 'font/woff2',
+        'mp3' => 'audio/mpeg'
     ];
 
     /**

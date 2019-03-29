@@ -8,6 +8,7 @@ $(document).ready(function () {
     loadAirports();
     loadCarriers();
     loadStatistics();
+    loadUsers();
 
     // Add listeners for when the user clicks to submit new ajax requests.
     $('#airport_submit').click(loadAirports);
@@ -15,6 +16,7 @@ $(document).ready(function () {
     $('#statistics_submit').click(loadStatistics);
     $('#aggregate_statistics_submit').click(loadAggregateStatistics);
     $('#weather_submit').click(loadWeather);
+    $('#users_submit').click(loadUsers);
 
     // Add listeners for when the user enables/disables year and month selection.
     $('#statistics_year_enabled').change(toggleYearEnabled);
@@ -222,6 +224,12 @@ function loadWeather() {
             results_container.empty();
             results_container.append(template(data['data'][0]))
         });
+}
+
+function loadUsers() {
+    let page = $('#users_page').val();
+    let limit = $('#users_limit').val();
+    loadCollection('/api/users', page, limit, '#users_results', '#user_entity');
 }
 
 function toggleYearEnabled() {
