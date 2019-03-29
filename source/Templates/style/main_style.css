@@ -24,6 +24,11 @@ html, body {
     max-height: 20%;
 }
 
+.windmill {
+    display: inline-block;
+    animation: windmill 0.5s linear infinite;
+}
+
 .marquee {
     width: 100%;
     padding-left: 100%;
@@ -47,6 +52,11 @@ html, body {
     80% { color: blueviolet; }
     90% { color: violet; }
     100% {color: red; }
+}
+
+@keyframes windmill {
+    0% { transform: rotate(0) }
+    100% { transform: rotate(360deg) }
 }
 
 .main_content {
