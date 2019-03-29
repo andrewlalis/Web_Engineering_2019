@@ -28,11 +28,12 @@ class Airports extends PaginatedEndpoint implements GetRequest
     }
 
     /**
+     * @param array $resource_item
      * @return string The name of the identifier which can be used to get a single resource from this endpoint.
      */
-    protected function getResourceIdentifierName(): string
+    protected function getResourceIdentifierName(array $resource_item): string
     {
-        return 'airport_code';
+        return '/' . $resource_item['airport_code'];
     }
 
     /**

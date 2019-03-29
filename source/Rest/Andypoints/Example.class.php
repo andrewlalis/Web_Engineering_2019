@@ -44,6 +44,6 @@ class Example extends Endpoint implements GetRequest
             'value' => $path_args['value'],
             'query_parameters' => $args,
             'uri' => $this->getUri()
-        ]);
+        ], []);
     }
 }

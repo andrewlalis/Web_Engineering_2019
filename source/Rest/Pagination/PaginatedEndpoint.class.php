@@ -24,6 +24,9 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     /** @var int The absolute maximum amount of resources that can be returned per page. */
     const MAX_LIMIT = 50;
 
+    /** @var int The absolute minimum amount of resources that can be returned per page. */
+    const MIN_LIMIT = 5;
+
     /**
      * Responds to a GET request to this resource. Since this is a paginated endpoint, it takes a page and limit
      * parameter, and also augments the links that a child provides by injecting its own page navigation links.
@@ -40,6 +43,14 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
         // Either get the user's defined page, or the default values.
         $page = $args['page'] ?? static::DEFAULT_PAGE;
         $limit = min($args['limit'] ?? static::DEFAULT_LIMIT, static::MAX_LIMIT);
+
+        if (!is_numeric($limit) || $limit < static::MIN_LIMIT) {
+            $limit = static::DEFAULT_LIMIT;
+        }
+
+        if (!is_numeric($page)) {
+            $page = static::DEFAULT_PAGE;
+        }
 
         // Compute offset using some QUICK MATHS.
         $offset = ($page - 1) * $limit;
@@ -69,7 +80,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     {
         $resource_item['links'] = array_merge(
             [
-                'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . '/' . $resource_item[$this->getResourceIdentifierName()]
+                'self' => parse_url($this->getRawURI(), PHP_URL_PATH) . $this->getResourceIdentifierName($resource_item)
             ],
             $this->getAdditionalResourceLinks($resource_item)
         );
@@ -154,7 +165,7 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
             ]
         );
 
-        $results = $this->fetchCollectionWithQuery($sql, $values);
+        $results = $this->fetchCollection($sql, $values);
 
         return new Response(
             200,
@@ -174,12 +185,12 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     protected function getTotalResourceCount(array $path_args, array $args): int
     {
         $builder = $this->getConditionBuilder($path_args, $args);
-        $sql = "SELECT COUNT(" . $this->getResourceIdentifierName() . ") as cnt FROM " . $this->getTableDeclaration();
+        $sql = "SELECT COUNT(*) as cnt FROM " . $this->getTableDeclaration();
         if ($builder->hasConjuncts()) {
             $sql .= " WHERE " . $builder->buildConditionalClause();
         }
         $sql .= ';';
-        $result = $this->fetchCollectionWithQuery($sql, $builder->buildPlaceholderValues());
+        $result = $this->fetchCollection($sql, $builder->buildPlaceholderValues());
         return $result[0]['cnt'];
     }
 
@@ -220,7 +231,8 @@ abstract class PaginatedEndpoint extends Endpoint implements GetRequest
     protected abstract function getTableDeclaration(): string;
 
     /**
+     * @param array $resource_item The resource item to get the identifier for. This provides context if needed.
      * @return string The name of the identifier which can be used to get a single resource from this endpoint.
      */
-    protected abstract function getResourceIdentifierName(): string;
+    protected abstract function getResourceIdentifierName(array $resource_item): string;
 }

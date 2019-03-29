@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style/main_style.css">
+    <title>Aviation Data Mine</title>
+    <!-- jQuery minified script from a CDN -->
+    <script
+            src="http://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <!-- Handlebars minified script from a CDN -->
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.1/handlebars.min.js"
+            integrity="sha256-Mki72593zH3nxiQrW1mskmSOAXOep8FVIK0ozKFISyY="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1 class="marquee"><span class="windmill">+</span> ✈ ✈ ✈ AndyFramework Aviation Data Mine ✈ ✈ ✈ <span class="windmill">+</span></h1>
+    <p>
+        Here you'll find all the information which is also available via our API.
+    </p>
+</div>
+
+<div class="main_content">
+    <div class="content_row">
+        <div class="four_column">
+            <h2>Airports</h2>
+            <div class="form">
+                <div>
+                    <label for="airport_page">Page:</label>
+                    <input id="airport_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="airport_limit">Limit per page:</label>
+                    <input id="airport_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <button id="airport_submit">Go</button>
+            </div>
+            <div id="airports_results" class="results_container"></div>
+        </div>
+        <div class="four_column">
+            <h2>Carriers</h2>
+            <div class="form">
+                <div>
+                    <label for="carrier_page">Page:</label>
+                    <input id="carrier_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="carrier_limit">Limit per page:</label>
+                    <input id="carrier_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <button id="carrier_submit">Go</button>
+            </div>
+            <div id="carriers_results" class="results_container"></div>
+        </div>
+
+        <div class="four_column">
+            <h2>Statistics</h2>
+            <div class="form">
+                <div>
+                    <label for="statistics_page">Page:</label>
+                    <input id="statistics_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="statistics_limit">Limit per page:</label>
+                    <input id="statistics_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <div>
+                    <label for="statistics_year_enabled">Filter by Year:</label>
+                    <input id="statistics_year_enabled" type="checkbox" />
+                </div>
+
+                <div>
+                    <label for="statistics_year">Year:</label>
+                    <input id="statistics_year" type="number" min="1900" max="9999" step="1" value="2008" disabled/>
+                </div>
+
+                <div>
+                    <label for="statistics_month_enabled">Filter by Month:</label>
+                    <input id="statistics_month_enabled" type="checkbox" />
+                </div>
+
+                <div>
+                    <label for="statistics_month">Month:</label>
+                    <input id="statistics_month" type="number" min="1" max="12" step="1" value="1" disabled/>
+                </div>
+
+                <div>
+                    <label for="statistics_airport_code">Airport code:</label>
+                    <select id="statistics_airport_code" class="airport_code_selector" data-optional="true"></select>
+                </div>
+
+                <div>
+                    <label for="statistics_carrier_code">Carrier code:</label>
+                    <select id="statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
+                </div>
+
+                <button id="statistics_submit">Go</button>
+            </div>
+            <div id="statistics_results" class="results_container"></div>
+        </div>
+
+        <div class="four_column">
+            <h2>Aggregate Carrier Delay Statistics</h2>
+            <div class="form">
+                <div>
+                    <label for="aggregate_statistics_airport_code_1">Airport code 1:</label>
+                    <select id="aggregate_statistics_airport_code_1" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <div>
+                    <label for="aggregate_statistics_airport_code_2">Airport code 2:</label>
+                    <select id="aggregate_statistics_airport_code_2" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <div>
+                    <label for="aggregate_statistics_carrier_code">Carrier code:</label>
+                    <select id="aggregate_statistics_carrier_code" class="carrier_code_selector" data-optional="true"></select>
+                </div>
+
+                <button id="aggregate_statistics_submit">Go</button>
+            </div>
+            <div id="aggregate_statistics_results" class="results_container"></div>
+        </div>
+    </div>
+    <div class="content_row">
+        <div class="four_column">
+            <h2>METAR Airport Weather Data</h2>
+            <p>
+                Obtained via <a href="https://apidocs.checkwx.com/">CheckWX API</a>.
+            </p>
+            <div class="form">
+                <div>
+                    <label for="weather_airport_code">Airport code:</label>
+                    <select id="weather_airport_code" class="airport_code_selector" data-optional="false"></select>
+                </div>
+
+                <button id="weather_submit">Go</button>
+            </div>
+            <div id="weather_results" class="results_container"></div>
+        </div>
+        <div class="four_column">
+            <h2>Users</h2>
+            <div class="form">
+                <div>
+                    <label for="users_page">Page:</label>
+                    <input id="users_page" type="number" min="1" step="1" value="1" />
+                </div>
+
+                <div>
+                    <label for="users_limit">Limit per page:</label>
+                    <input id="users_limit" type="number" min="5" step="5" max="50" value="10" />
+                </div>
+
+                <button id="users_submit">Go</button>
+            </div>
+            <div id="users_results" class="results_container"></div>
+        </div>
+        <div class="four_column">
+            <h2>3</h2>
+        </div>
+        <div class="four_column">
+            <h2>4</h2>
+            <audio controls autoplay="autoplay" loop="loop">
+                <source src="resources/Retarded_Beat.mp3" type="audio/mpeg"/>
+            </audio>
+        </div>
+    </div>
+</div>
+
+</body>
+
+<!-- Handlebars Templates -->
+<script id="airport_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>{{airport_name}} ({{airport_code}})</span>
+    </div>
+</script>
+
+<script id="carrier_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>{{carrier_name}} ({{carrier_code}})</span>
+    </div>
+</script>
+
+<script id="statistic_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>Airport code: {{airport_code}}</span>
+        <span>Carrier code: {{carrier_code}}</span>
+        <span>Year: {{year}}</span>
+        <span>Month: {{month}}</span>
+        <h3>Flights</h3>
+        <table>
+            <tr>
+                <th>Cancelled</th>
+                <th>Delayed</th>
+                <th>Diverted</th>
+                <th>On-Time</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td>{{flights.cancelled}}</td>
+                <td>{{flights.delayed}}</td>
+                <td>{{flights.diverted}}</td>
+                <td>{{flights.on_time}}</td>
+                <td>{{flights.total}}</td>
+            </tr>
+        </table>
+        <h3>Delays</h3>
+        <table>
+            <tr>
+                <th>Carrier</th>
+                <th>Late Aircraft</th>
+                <th>National Aviation System</th>
+                <th>Security</th>
+                <th>Weather</th>
+            </tr>
+            <tr>
+                <td>{{delays.carrier}}</td>
+                <td>{{delays.late_aircraft}}</td>
+                <td>{{delays.national_aviation_system}}</td>
+                <td>{{delays.security}}</td>
+                <td>{{delays.weather}}</td>
+            </tr>
+        </table>
+        <h3>Minutes Delayed</h3>
+        <table>
+            <tr>
+                <th>Carrier</th>
+                <th>Late Aircraft</th>
+                <th>National Aviation System</th>
+                <th>Security</th>
+                <th>Weather</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td>{{minutes_delayed.carrier}}</td>
+                <td>{{minutes_delayed.late_aircraft}}</td>
+                <td>{{minutes_delayed.national_aviation_system}}</td>
+                <td>{{minutes_delayed.security}}</td>
+                <td>{{minutes_delayed.weather}}</td>
+                <td>{{minutes_delayed.total}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+<script id="aggregate_statistic_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <h3>Carrier</h3>
+        <ul>
+            <li>Average: {{carrier.average}}</li>
+            <li>Standard Deviation: {{carrier.standard_deviation}}</li>
+            <li>Median: {{carrier.median}}</li>
+        </ul>
+        <h3>Late Aircraft</h3>
+        <ul>
+            <li>Average: {{late_aircraft.average}}</li>
+            <li>Standard Deviation: {{late_aircraft.standard_deviation}}</li>
+            <li>Median: {{late_aircraft.median}}</li>
+        </ul>
+    </div>
+</script>
+
+<script id="weather_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <h3>Weather data for {{station.name}} (ICAO: {{icao}})</h3>
+        <ul>
+            <li>Wind speeds of {{wind.speed_kts}} knots at {{wind.degrees}} degrees.</li>
+            <li>Temperature of {{temperature.celsius}} degrees C.</li>
+            <li>Dewpoint of {{dewpoint.celsius}} degrees C.</li>
+            <li>Humidity of {{humidity.percent}}%</li>
+            <li>Visibility {{visibility.miles}} miles.</li>
+            <li>Flight rules {{flight_category}}</li>
+        </ul>
+    </div>
+</script>
+
+<script id="user_entity" type="text/x-handlebars-template">
+    <div class="entity">
+        <span>User id: {{id}}, address: <code>{{address}}</code></span>
+        <ul>
+            <li>Address: <code>{{address}}</code></li>
+            <li>Total requests: {{request_count}}</li>
+            <li>Most requested endpoint: {{most_requested_endpoint}}</li>
+        </ul>
+    </div>
+</script>
+
+<!-- Custom JS -->
+<script type="text/javascript" src="js/ajax_loader.js"></script>
+
+</html>
